@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║           PhantomSec OS — Termux Cybersecurity Distro               ║
-# ║                    Installer v1.3.1                                  ║
+# ║                    Installer v1.4.1                                  ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 R='\033[0;31m'  G='\033[0;32m'  Y='\033[1;33m'
@@ -10,7 +10,7 @@ BOLD='\033[1m'  DIM='\033[2m'   NC='\033[0m'
 
 PHANTOMSEC_DIR="$HOME/.phantomsec"
 PHANTOMSEC_BIN="$PREFIX/bin/phantomsec"
-VERSION="1.3.1"
+VERSION="1.4.1"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ── ตัวแปรติดตามสถานะ ─────────────────────────────────────────────────
@@ -31,8 +31,8 @@ step() {
   local pct=$(( CURRENT_STEP * 100 / TOTAL_STEPS ))
   local filled=$(( pct / 5 ))
   local bar=""
-  for i in $(seq 1 $filled);      do bar="${bar}█"; done
-  for i in $(seq 1 $((20-filled))); do bar="${bar}░"; done
+  for ((i=1; i<=filled; i++));       do bar="${bar}█"; done
+  for ((i=filled+1; i<=20; i++)); do bar="${bar}░"; done
   echo ""
   echo -e "${M}${BOLD}━━━ [${CURRENT_STEP}/${TOTAL_STEPS}] $1${NC}"
   echo -e "  ${DIM}[${bar}] ${pct}%${NC}"
