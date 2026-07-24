@@ -90,16 +90,26 @@ done
 #  Python tools via pip
 # ──────────────────────────────────────────
 print_step "Installing Python security tools"
+# impacket & scapy excluded — they pull pip as a dependency which Termux forbids.
+# To install manually later: pip install scapy --no-deps
 PIP_PKGS=(
-  scapy impacket requests
-  colorama rich prompt_toolkit
-  pycryptodome cryptography
-  dnspython shodan
+  requests
+  colorama
+  rich
+  prompt_toolkit
+  pycryptodome
+  cryptography
+  dnspython
 )
 
 for p in "${PIP_PKGS[@]}"; do
   print_status "pip: $p"
-  pip install "$p" -q 2>/dev/null && print_ok "$p" || print_warn "Skipped: $p"
+  # Suppress both stdout and stderr to avoid Termux pip-forbidden noise
+  if pip install "$p" -q >/dev/null 2>&1; then
+    print_ok "$p"
+  else
+    print_warn "Skipped: $p"
+  fi
 done
 
 # ──────────────────────────────────────────
