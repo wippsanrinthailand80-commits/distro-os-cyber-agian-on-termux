@@ -59,6 +59,14 @@ fi
 print_ok "Internet connection OK"
 
 # ──────────────────────────────────────────
+#  Enable extra Termux repositories
+#  (hydra, sqlmap อยู่ใน unstable-repo ใน Termux เวอร์ชันใหม่)
+# ──────────────────────────────────────────
+print_step "Enabling Termux repositories"
+pkg install -y unstable-repo 2>/dev/null && print_ok "unstable-repo" || print_warn "unstable-repo (ข้ามได้)"
+pkg install -y root-repo    2>/dev/null && print_ok "root-repo"     || print_warn "root-repo (ข้ามได้)"
+
+# ──────────────────────────────────────────
 #  Update repos
 # ──────────────────────────────────────────
 print_step "Updating repositories"
@@ -66,16 +74,39 @@ pkg update -y && pkg upgrade -y
 print_ok "Packages updated"
 
 # ──────────────────────────────────────────
-#  Core packages  (NO python-pip — Termux forbids pip self-upgrade)
+#  Helper: ติดตั้ง pkg พร้อม retry 1 ครั้ง
+# ──────────────────────────────────────────
+install_pkg() {
+  local pkg="$1"
+  print_status "Installing ${pkg}..."
+  if pkg install -y "$pkg" >/dev/null 2>&1; then
+    print_ok "$pkg"
+    return 0
+  fi
+  # retry ครั้งที่ 2 หลัง 3 วินาที (เผื่อ network ชั่วคราว)
+  sleep 3
+  if pkg install -y "$pkg" >/dev/null 2>&1; then
+    print_ok "$pkg (retry สำเร็จ)"
+    return 0
+  fi
+  print_warn "ข้าม: $pkg (จะลอง fallback ทีหลัง)"
+  return 1
+}
+
+# ──────────────────────────────────────────
+#  Core packages
+#  หมายเหตุ: ruby ต้องอยู่ก่อน lolcat เสมอ
+#            (lolcat เป็น Ruby gem)
 # ──────────────────────────────────────────
 print_step "Installing core dependencies"
 
-# Install one-by-one so a missing package never aborts the whole install
 CORE_PKGS=(
   python
   git
   curl
   wget
+  ruby
+  perl
   nmap
   hydra
   sqlmap
@@ -93,15 +124,38 @@ CORE_PKGS=(
   nano
   tmux
   zsh
-  perl
-  ruby
   nodejs-lts
 )
 
 for p in "${CORE_PKGS[@]}"; do
-  print_status "Installing ${p}..."
-  pkg install -y "$p" >/dev/null 2>&1 && print_ok "$p" || print_warn "Skipped: $p"
+  install_pkg "$p"
 done
+
+# ──────────────────────────────────────────
+#  Fallback สำหรับแพ็กเกจที่มักติดตั้งยาก
+# ──────────────────────────────────────────
+print_step "Fallback installs"
+
+# sqlmap — ลองผ่าน pip ถ้า pkg ล้มเหลว
+if ! command -v sqlmap &>/dev/null; then
+  print_status "sqlmap: ลอง pip install..."
+  pip install sqlmap --quiet --no-deps 2>/dev/null \
+    && print_ok "sqlmap (via pip)" \
+    || print_warn "sqlmap ติดตั้งไม่ได้อัตโนมัติ — รัน: pip install sqlmap"
+fi
+
+# hydra — แจ้งถ้ายังไม่มี
+if ! command -v hydra &>/dev/null; then
+  print_warn "hydra ยังไม่ถูกติดตั้ง — รัน: pkg install hydra"
+fi
+
+# lolcat — ลอง gem install ถ้า pkg ล้มเหลว
+if ! command -v lolcat &>/dev/null; then
+  print_status "lolcat: ลอง gem install..."
+  gem install lolcat --no-document 2>/dev/null \
+    && print_ok "lolcat (via gem)" \
+    || print_warn "lolcat ติดตั้งไม่ได้อัตโนมัติ — รัน: gem install lolcat"
+fi
 
 # ──────────────────────────────────────────
 #  PhantomSec environment
