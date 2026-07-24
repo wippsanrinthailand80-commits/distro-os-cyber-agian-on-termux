@@ -661,7 +661,7 @@ menu_tool_manager() {
           printf "  %-20s" "$t"
           tool_status "$t"
         done; press_enter ;;
-      2) pkg update -y && pkg upgrade -y && pip install --upgrade pip -q; echo -e "\n  ${G}[✓] Updated${NC}"; press_enter ;;
+      2) pkg update -y && pkg upgrade -y; echo -e "\n  ${G}[✓] Updated${NC}"; press_enter ;;
       3) pkg install -y nmap hydra sqlmap nikto curl wget git openssl-tool; echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
       4) echo -e "  ${G}[✓] PhantomSec v${VERSION} is already the latest.${NC}"; press_enter ;;
       0) return ;;

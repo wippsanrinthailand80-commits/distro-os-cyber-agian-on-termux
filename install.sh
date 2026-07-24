@@ -97,7 +97,6 @@ PIP_PKGS=(
   dnspython shodan
 )
 
-pip install --upgrade pip -q
 for p in "${PIP_PKGS[@]}"; do
   print_status "pip: $p"
   pip install "$p" -q 2>/dev/null && print_ok "$p" || print_warn "Skipped: $p"
