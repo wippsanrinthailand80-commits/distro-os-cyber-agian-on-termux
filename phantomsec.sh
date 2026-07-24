@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec OS — Main Menu Interface v1.3.0                 ║
+# ║          PhantomSec OS — Main Menu Interface v1.3.1                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 # อ่าน version จากไฟล์ VERSION แยก (เปลี่ยนได้โดย update.sh ไม่ต้องแก้ script)
@@ -10,7 +10,7 @@ _VERSION_FILE="$_SCRIPT_DIR/VERSION"
 if [ ! -f "$_VERSION_FILE" ]; then
   _VERSION_FILE="${PHANTOMSEC_DIR:-$HOME/.phantomsec}/VERSION"
 fi
-VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.2.0')"
+VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.3.1')"
 PHANTOMSEC_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
 LOG_FILE="$PHANTOMSEC_DIR/logs/session_$(date +%Y%m%d_%H%M%S).log"
 
@@ -33,7 +33,7 @@ TL='╔' TR='╗' BL='╚' BR='╝'
 H='═'  V='║'  LM='╠' RM='╣'
 TM='╦' BM='╩'
 
-mkdir -p "$PHANTOMSEC_DIR"/{logs,sessions,wordlists,reports}
+mkdir -p "$PHANTOMSEC_DIR"/{logs,sessions,wordlists,reports,config}
 
 # ── Helpers ────────────────────────────────────────────────────────────
 log() { echo "[$(date '+%T')] $*" >> "$LOG_FILE"; }
@@ -271,7 +271,7 @@ run_subdomain() {
   for sub in "${subs[@]}"; do
     local full="$sub.$domain"
     if host "$full" &>/dev/null 2>&1; then
-      echo -e "  ${G}[FOUND]${NC}  $full  →  $(dig +short A $full | head -1)"
+      echo -e "  ${G}[FOUND]${NC}  $full  →  $(dig +short A "$full" | head -1)"
     fi
   done
   draw_line "─" 66; press_enter
@@ -299,7 +299,8 @@ run_shodan() {
   echo -ne "  ${C}API Key:${NC} "; read -rs key; echo ""
   echo -ne "  ${C}Search query:${NC} "; read -r query
   echo ""; draw_line "─" 66
-  curl -s "https://api.shodan.io/shodan/host/search?key=$key&query=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$query'))")" | python3 -m json.tool 2>/dev/null | head -80
+  local enc_q; enc_q=$(printf '%s' "$query" | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read().rstrip()))')
+  curl -s --max-time 10 "https://api.shodan.io/shodan/host/search?key=$key&query=$enc_q" | python3 -m json.tool 2>/dev/null | head -80
   draw_line "─" 66; press_enter
 }
 
@@ -405,7 +406,7 @@ run_xss_gen() {
     for p in "${payloads[@]}"; do
       enc=$(printf '%s' "$p" | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read().rstrip()))')
       echo -ne "  Testing: ${DIM}$p${NC} ... "
-      code=$(curl -s -o /dev/null -w "%{http_code}" "${url}${enc}")
+      code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${url}${enc}")
       echo -e "${G}HTTP $code${NC}"
     done
   fi
@@ -437,7 +438,7 @@ run_lfi() {
     result=$(curl -s --max-time 5 "${url}${p}" 2>/dev/null | grep -c "root:" || true)
     if [ "$result" -gt 0 ]; then
       echo -e "  ${G}[VULNERABLE]${NC}  Payload: ${G}$p${NC}"
-      curl -s "${url}${p}" | head -5
+      curl -s --max-time 5 "${url}${p}" | head -5
     fi
   done
   draw_line "─" 66; press_enter
@@ -447,7 +448,7 @@ run_cors() {
   show_banner; draw_box "  CORS & SECURITY HEADERS" 66; echo ""
   echo -ne "  ${C}Target URL:${NC} "; read -r url
   echo ""; draw_line "─" 66
-  local headers; headers=$(curl -sI "$url" 2>/dev/null)
+  local headers; headers=$(curl -sI --max-time 8 "$url" 2>/dev/null)
   local checks=("X-Frame-Options" "X-XSS-Protection" "Content-Security-Policy" "Strict-Transport-Security" "X-Content-Type-Options" "Access-Control-Allow-Origin")
   for h in "${checks[@]}"; do
     if echo "$headers" | grep -qi "$h"; then
@@ -675,6 +676,7 @@ menu_crypto() {
          echo -e "  ${G}SHA256:${NC} $(echo -n "$s" | sha256sum | cut -d' ' -f1)"; press_enter ;;
       3) echo -ne "  Text: "; read -r t; echo -ne "  Shift (1-25): "; read -r sh
          sh="${sh:-13}"
+         if ! [[ "$sh" =~ ^[0-9]+$ ]]; then echo -e "  ${R}[x] Shift must be a number.${NC}"; press_enter; continue; fi
          echo "$t" | python3 -c "
 import sys, string
 sh=int('$sh') % 26
@@ -701,10 +703,27 @@ menu_tool_manager() {
     echo -e "${M}${V}${NC}  ${DC}[2]${NC}  ${W}Update all packages${NC}"
     echo -e "${M}${V}${NC}  ${DC}[3]${NC}  ${W}Install missing tools${NC}"
     echo -e "${M}${V}${NC}  ${DC}[4]${NC}  ${W}Update PhantomSec${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}Check for Updates${NC}         ${DIM}(compare with GitHub)${NC}"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
     case "$r" in
+      5) show_banner; draw_box "  CHECK FOR UPDATES" 66; echo ""
+         local remote_ver local_ver
+         local_ver="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo "$VERSION")"
+         echo -e "  ${C}[*] Checking GitHub for latest version...${NC}"
+         remote_ver=$(curl -s --max-time 8 \
+           "https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/VERSION" \
+           2>/dev/null | tr -d '[:space:]')
+         if [ -z "$remote_ver" ]; then
+           echo -e "  ${Y}[!] Could not reach GitHub. Check your internet connection.${NC}"
+         elif [ "$remote_ver" = "$local_ver" ]; then
+           echo -e "  ${G}[V] You are up to date! (v$local_ver)${NC}"
+         else
+           echo -e "  ${Y}[!] Update available! v$remote_ver (you have v$local_ver)${NC}"
+           echo -e "  ${C}    Run option [4] Update PhantomSec to upgrade.${NC}"
+         fi
+         press_enter ;;
       1)
         show_banner; draw_box "  TOOL STATUS" 66; echo ""
         local tools=("nmap" "sqlmap" "hydra" "nikto" "curl" "wget" "git" "python3" "openssl" "nc" "dig" "whois" "masscan" "john" "gobuster" "nuclei" "whatweb" "aircrack-ng")
@@ -718,7 +737,20 @@ menu_tool_manager() {
          pkg install -y golang 2>/dev/null && go install github.com/OJ/gobuster/v3@latest 2>/dev/null || true
          bash -c 'curl -fsSL https://projectdiscovery.io/nuclei.sh | bash' 2>/dev/null || true
          echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
-      4) bash "$(dirname "$0")/update.sh"; press_enter ;;
+      4) local _upd_script=""
+         for _loc in "$_SCRIPT_DIR/update.sh" \
+                     "$HOME/distro-os-cyber-agian-on-termux/update.sh" \
+                     "$HOME/phantomsec/update.sh" \
+                     "$HOME/PhantomSec/update.sh"; do
+           [ -f "$_loc" ] && _upd_script="$_loc" && break
+         done
+         if [ -n "$_upd_script" ]; then
+           bash "$_upd_script"
+         else
+           echo -e "  ${R}[x] update.sh not found. Clone the repo first:${NC}"
+           echo -e "  ${C}git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux${NC}"
+         fi
+         press_enter ;;
       0) return ;;
     esac
   done
@@ -752,7 +784,8 @@ menu_settings() {
     echo -e "  ${DC}[0]${NC} Back"
     echo -ne "\n  ${M}▶${NC} "; read -r r
     case "$r" in
-      1) cat "$HOME/.config/phantomsec/settings.conf" 2>/dev/null || echo "  (no config)"; press_enter ;;
+      1) mkdir -p "$PHANTOMSEC_DIR/config"
+         cat "$PHANTOMSEC_DIR/config/settings.conf" 2>/dev/null || echo "  (no config found at $PHANTOMSEC_DIR/config/settings.conf)"; press_enter ;;
       2) echo -ne "  ${C}Shodan API key:${NC} "; read -rs k; echo ""
          local cfg="$PHANTOMSEC_DIR/config/settings.conf"
          if grep -q "^SHODAN_API_KEY=" "$cfg" 2>/dev/null; then
