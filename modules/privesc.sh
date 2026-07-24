@@ -44,8 +44,8 @@ env 2>/dev/null | grep -iE "path|home|shell|user|pass|key|token|secret|api" | gr
 
 # ── 6. Cron jobs ──────────────────────────────────────────────────────
 echo -e "\n${G}[+] Cron Jobs${NC}"
-for f in /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/* 2>/dev/null; do
-  [ -r "$f" ] && echo -e "  ${C}$f:${NC}" && cat "$f" 2>/dev/null | grep -v "^#" | grep -v "^$"
+for f in /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/*; do
+  [ -r "$f" ] 2>/dev/null && echo -e "  ${C}$f:${NC}" && grep -v "^#\|^$" "$f" 2>/dev/null | head -10
 done
 crontab -l 2>/dev/null | head -10
 
