@@ -16,6 +16,8 @@
 [![Shell](https://img.shields.io/badge/Shell-Bash-blue?style=flat-square&logo=gnu-bash)](https://www.gnu.org/software/bash/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.4.0-purple?style=flat-square)]()
+[![Status](https://img.shields.io/badge/Status-Actively%20Maintained-brightgreen?style=flat-square&logo=github)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/commits/main)
+[![Last Updated](https://img.shields.io/badge/Last%20Updated-July%202026-blue?style=flat-square)]()
 [![Stars](https://img.shields.io/github/stars/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux/stargazers)
 
 **PhantomSec OS** turns your Android device + Termux into a full-featured cybersecurity research environment — with an interactive, colour-coded menu UI covering everything from recon to exploitation.
@@ -23,6 +25,23 @@
 > ⚠️ **For educational and ethical use only.** Always get written permission before testing any system you don't own.
 
 </div>
+
+---
+
+## 🔔 Project Status
+
+> **โปรเจกต์นี้ยังคงอัพเดตอยู่อย่างต่อเนื่อง** — ติดตาม commits ล่าสุดได้ที่ [commits/main](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/commits/main)
+
+| สิ่งที่กำลังทำอยู่ | สถานะ |
+|---|---|
+| 🧩 เพิ่ม module ใหม่ (Social Engineering, PrivEsc) | 🔄 In Progress |
+| 🐞 แก้ไข bug จาก v1.3.0 | ✅ Done (v1.4.0) |
+| 🎨 เพิ่ม themes ใหม่ | 🔄 In Progress |
+| 📦 อัพเดต tool list ให้ครอบคลุมมากขึ้น | 🔄 In Progress |
+| 📄 ปรับปรุง documentation | 🔄 In Progress |
+
+> 📌 อัพเดตล่าสุด: **July 24, 2026** — v1.4.0 released  
+> ดู [CHANGELOG.md](CHANGELOG.md) สำหรับรายละเอียดทุก version
 
 ---
 
@@ -88,81 +107,17 @@ phantomsec
 | Category | Tools |
 |---|---|
 | 🔍 **Recon / OSINT** | nmap, whois, dig, shodan, geoip, banner grabber, subdomain finder, whatweb, theHarvester |
-| 🔓 **Vuln Scanning** | nikto, nmap --script vuln, CVE lookup, SSL checker |
-| 💉 **Web Exploitation** | sqlmap, XSS generator, dir bruteforce, LFI tester, CORS checker |
+| 🔓 **Vuln Scanning** | nikto, nmap --script vuln, CVE lookup, SSL checker, Nuclei |
+| 💉 **Web Exploitation** | sqlmap, XSS generator, dir bruteforce, LFI tester, CORS checker, Gobuster |
 | 🔑 **Password Attacks** | hydra, john, hash identifier, online hash cracker, password generator |
-| 📡 **Network Analysis** | nmap, traceroute, ARP scan, tcpdump, port scanner |
-| 📱 **Wireless** | termux-wifi-scaninfo, connection info |
-| 🐚 **Reverse Shells** | Bash, Python, PHP, Perl, Netcat payloads + listener |
-| 🛡️ **Forensics** | strings, xxd, md5sum, sha256sum, base64 |
-| 🔐 **Crypto** | RSA key gen, hash functions, Caesar cipher, ROT13, token gen |
-| 📦 **Tool Manager** | Install, update, status checker |
+| 📡 **Network Analysis** | tcpdump, netstat, masscan, arp-scan, port scanner |
+| 📱 **Wireless** | aircrack-ng, WiFi scanner, Bluetooth tools |
+| 🐚 **Reverse Shells** | payload generator, netcat listener, msfvenom |
+| 🛡️ **Forensics** | strings, binwalk, file carving, log analysis |
+| 🔐 **Crypto** | hash tools, base64, Caesar cipher, encode/decode |
+| 🎭 **Social Engineering** | Zphisher, Metasploit info, SET |
 
 ---
-
-## 📁 File Structure
-
-```
-distro-os-cyber-agian-on-termux/
-├── bootstrap.sh          # One-command installer (curl | bash)
-├── install.sh            # Full installer with step counter & summary
-├── phantomsec.sh         # Main interactive UI
-├── update.sh             # Updater script
-├── uninstall.sh          # Uninstaller
-├── python_tools.sh       # Optional Python security libs
-├── config/
-│   └── settings.conf     # Configuration file
-├── modules/
-│   ├── recon.sh          # Standalone recon module
-│   ├── webexploit.sh     # Standalone web exploit module
-│   ├── nettools.sh       # Standalone network tools module
-│   └── privesc.sh        # Privilege escalation recon module
-├── themes/
-│   ├── matrix.sh         # Matrix rain terminal effect
-│   ├── dark.sh           # Dark colour theme
-│   └── classic.sh        # Classic green-on-black theme
-└── docs/
-    ├── TOOLS.md          # Detailed tool reference
-    └── USAGE.md          # Usage guide & examples
-```
-
----
-
-## 🎯 Standalone Modules
-
-You can run individual modules without launching the full menu:
-
-```bash
-# Recon
-bash modules/recon.sh example.com
-
-# Web check
-bash modules/webexploit.sh https://example.com
-
-# Network tools
-bash modules/nettools.sh 192.168.1.0/24
-
-# Matrix theme (for fun)
-bash themes/matrix.sh
-```
-
----
-
-## ⚙️ Requirements
-
-| Requirement | Details |
-|---|---|
-| **OS** | Android 7+ with Termux |
-| **Termux** | Latest from F-Droid (recommended) or Google Play |
-| **Storage** | ~500MB for full tool install |
-| **Internet** | Required during setup |
-| **Root** | Optional (some features need root for packet capture, monitor mode) |
-
----
-
-## 🔧 Configuration
-
-Edit `~/.config/phantomsec/settings.conf` to set API keys:
 
 ```bash
 SHODAN_API_KEY="your_key_here"
@@ -212,4 +167,6 @@ MIT License — see [LICENSE](LICENSE)
 
 <div align="center">
 Made with ❤️ by <b>wippsanrinthailand80-commits</b> · Star ⭐ if you find it useful!
+<br><br>
+<sub>🔄 Actively updated — last commit: July 2026</sub>
 </div>
