@@ -2,7 +2,7 @@
 # PhantomSec — Updater
 
 G='\033[0;32m' C='\033[0;36m' M='\033[0;35m' NC='\033[0m' Y='\033[1;33m'
-REPO="https://github.com/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux"
+REPO="https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux"
 
 echo -e "${M}[PhantomSec Updater]${NC}"
 echo -e "${C}[*] Pulling latest version from GitHub...${NC}"

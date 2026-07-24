@@ -16,7 +16,7 @@ NC='\033[0m'
 
 PHANTOMSEC_DIR="$HOME/.phantomsec"
 PHANTOMSEC_BIN="$PREFIX/bin/phantomsec"
-VERSION="1.0.0"
+VERSION="1.1.0"
 
 clear
 cat << "EOF"

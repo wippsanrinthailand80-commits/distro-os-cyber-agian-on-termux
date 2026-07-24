@@ -4,8 +4,8 @@
 
 ### 1. Install
 ```bash
-git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux
-cd distro-os-cyber-again-on-termux
+git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
+cd distro-os-cyber-agian-on-termux
 bash install.sh
 ```
 

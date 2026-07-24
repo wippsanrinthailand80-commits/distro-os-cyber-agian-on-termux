@@ -3,7 +3,7 @@
 # ║          PhantomSec OS — Main Menu Interface v1.0.0                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
-VERSION="1.0.0"
+VERSION="1.1.0"
 PHANTOMSEC_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
 LOG_FILE="$PHANTOMSEC_DIR/logs/session_$(date +%Y%m%d_%H%M%S).log"
 
@@ -399,7 +399,7 @@ run_dirbust() {
   show_banner; draw_box "  DIRECTORY BRUTEFORCE" 66; echo ""
   echo -ne "  ${C}Target URL (e.g. http://site.com):${NC} "; read -r base
   local dirs=("admin" "login" "dashboard" "wp-admin" "phpmyadmin" "backup" "config" "api" "uploads" "images" ".git" ".env" "robots.txt" "sitemap.xml" "console" "panel" "secret" "test" "dev" "old")
-  echo ""; draw_line "─" 66""; echo ""
+  echo ""; draw_line "─" 66; echo ""
   for d in "${dirs[@]}"; do
     local code; code=$(curl -s -o /dev/null -w "%{http_code}" "$base/$d" 2>/dev/null)
     case "$code" in
@@ -566,18 +566,22 @@ menu_network() {
 
 # ── 06  Wireless ───────────────────────────────────────────────────────
 menu_wireless() {
-  show_banner; draw_box "  📱 WIRELESS INFO" 66; echo ""
-  echo -e "  ${Y}[!] Note: Full wireless attacks require root + monitor-mode adapter.${NC}"
-  echo -e "  ${Y}[!] Some features may be limited in Termux without root.${NC}"; echo ""
-  echo -e "  ${W}Available info commands:${NC}"
-  echo -e "  ${DC}[1]${NC} Show WiFi info (termux-wifi-connectioninfo)"
-  echo -e "  ${DC}[2]${NC} Scan nearby WiFi (termux-wifi-scaninfo)"
-  echo -e "  ${DC}[0]${NC} Back"
-  echo -ne "\n  ${M}▶${NC} "; read -r r
-  case "$r" in
-    1) termux-wifi-connectioninfo 2>/dev/null | python3 -m json.tool 2>/dev/null; press_enter ;;
-    2) termux-wifi-scaninfo 2>/dev/null | python3 -m json.tool 2>/dev/null | head -60; press_enter ;;
-  esac
+  while true; do
+    show_banner; draw_box "  📱 WIRELESS INFO" 66; echo ""
+    echo -e "  ${Y}[!] Note: Full wireless attacks require root + monitor-mode adapter.${NC}"
+    echo -e "  ${Y}[!] Some features may be limited in Termux without root.${NC}"; echo ""
+    echo -e "  ${W}Available info commands:${NC}"
+    echo -e "  ${DC}[1]${NC} Show WiFi info (termux-wifi-connectioninfo)"
+    echo -e "  ${DC}[2]${NC} Scan nearby WiFi (termux-wifi-scaninfo)"
+    echo -e "  ${DC}[0]${NC} Back"
+    echo -ne "\n  ${M}▶${NC} "; read -r r
+    case "$r" in
+      1) termux-wifi-connectioninfo 2>/dev/null | python3 -m json.tool 2>/dev/null; press_enter ;;
+      2) termux-wifi-scaninfo 2>/dev/null | python3 -m json.tool 2>/dev/null | head -60; press_enter ;;
+      0) return ;;
+      *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
+    esac
+  done
 }
 
 # ── 07  Reverse Shells ─────────────────────────────────────────────────
@@ -602,44 +606,66 @@ menu_shells() {
 
 # ── 08  Forensics ──────────────────────────────────────────────────────
 menu_forensics() {
-  show_banner; draw_box "  🛡️  FORENSICS & ANALYSIS" 66; echo ""
-  echo -e "  ${DC}[1]${NC} ${W}File metadata (strings)${NC}"
-  echo -e "  ${DC}[2]${NC} ${W}MD5 / SHA256 Checksum${NC}"
-  echo -e "  ${DC}[3]${NC} ${W}Hex dump${NC}"
-  echo -e "  ${DC}[4]${NC} ${W}Base64 encode/decode${NC}"
-  echo -e "  ${DC}[0]${NC} Back"
-  echo -ne "\n  ${M}▶${NC} "; read -r r
-  case "$r" in
-    1) echo -ne "  File: "; read -r f; strings "$f" | head -50; press_enter ;;
-    2) echo -ne "  File: "; read -r f; echo -e "${G}MD5:${NC} $(md5sum $f)"; echo -e "${G}SHA256:${NC} $(sha256sum $f)"; press_enter ;;
-    3) echo -ne "  File: "; read -r f; xxd "$f" | head -20; press_enter ;;
-    4) echo -e "  ${DC}[1]${NC} Encode  ${DC}[2]${NC} Decode"; read -r m
-       echo -ne "  String: "; read -r s
-       case "$m" in 1) echo "$s" | base64;; 2) echo "$s" | base64 -d;; esac; press_enter ;;
-  esac
+  while true; do
+    show_banner; draw_box "  🛡️  FORENSICS & ANALYSIS" 66; echo ""
+    echo -e "  ${DC}[1]${NC} ${W}File metadata (strings)${NC}"
+    echo -e "  ${DC}[2]${NC} ${W}MD5 / SHA256 Checksum${NC}"
+    echo -e "  ${DC}[3]${NC} ${W}Hex dump${NC}"
+    echo -e "  ${DC}[4]${NC} ${W}Base64 encode/decode${NC}"
+    echo -e "  ${DC}[0]${NC} Back"
+    echo -ne "\n  ${M}▶${NC} "; read -r r
+    case "$r" in
+      1) echo -ne "  File: "; read -r f; strings "$f" | head -50; press_enter ;;
+      2) echo -ne "  File: "; read -r f
+         echo -e "${G}MD5:${NC}    $(md5sum "$f" | cut -d' ' -f1)"
+         echo -e "${G}SHA256:${NC} $(sha256sum "$f" | cut -d' ' -f1)"; press_enter ;;
+      3) echo -ne "  File: "; read -r f; xxd "$f" | head -20; press_enter ;;
+      4) echo -e "  ${DC}[1]${NC} Encode  ${DC}[2]${NC} Decode"; read -r m
+         echo -ne "  String: "; read -r s
+         case "$m" in 1) echo "$s" | base64;; 2) echo "$s" | base64 -d;; esac; press_enter ;;
+      0) return ;;
+      *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
+    esac
+  done
 }
 
 # ── 09  Cryptography ───────────────────────────────────────────────────
 menu_crypto() {
-  show_banner; draw_box "  🔐 CRYPTOGRAPHY TOOLS" 66; echo ""
-  echo -e "  ${DC}[1]${NC} ${W}Generate RSA key pair${NC}"
-  echo -e "  ${DC}[2]${NC} ${W}Hash string (MD5/SHA)${NC}"
-  echo -e "  ${DC}[3]${NC} ${W}Caesar cipher${NC}"
-  echo -e "  ${DC}[4]${NC} ${W}ROT13${NC}"
-  echo -e "  ${DC}[5]${NC} ${W}Generate random token${NC}"
-  echo -e "  ${DC}[0]${NC} Back"
-  echo -ne "\n  ${M}▶${NC} "; read -r r
-  case "$r" in
-    1) openssl genrsa -out "$PHANTOMSEC_DIR/key.pem" 2048 2>/dev/null; openssl rsa -in "$PHANTOMSEC_DIR/key.pem" -pubout -out "$PHANTOMSEC_DIR/key.pub" 2>/dev/null; echo -e "  ${G}[✓] Saved to $PHANTOMSEC_DIR/key.pem & key.pub${NC}"; press_enter ;;
-    2) echo -ne "  String: "; read -r s
-       echo -e "  ${G}MD5:${NC}    $(echo -n "$s" | md5sum | cut -d' ' -f1)"
-       echo -e "  ${G}SHA1:${NC}   $(echo -n "$s" | sha1sum | cut -d' ' -f1)"
-       echo -e "  ${G}SHA256:${NC} $(echo -n "$s" | sha256sum | cut -d' ' -f1)"; press_enter ;;
-    3) echo -ne "  Text: "; read -r t; echo -ne "  Shift: "; read -r sh
-       echo "$t" | tr "$(printf '%s' {A..Z} {a..z})" "$(python3 -c "import string; a=string.ascii_uppercase; b=string.ascii_lowercase; s=$sh; print(''.join(a[(i+s)%26] for i in range(26))+''.join(b[(i+s)%26] for i in range(26)))")"; press_enter ;;
-    4) echo -ne "  Text: "; read -r t; echo "$t" | tr 'A-Za-z' 'N-ZA-Mn-za-m'; press_enter ;;
-    5) openssl rand -hex 32; press_enter ;;
-  esac
+  while true; do
+    show_banner; draw_box "  🔐 CRYPTOGRAPHY TOOLS" 66; echo ""
+    echo -e "  ${DC}[1]${NC} ${W}Generate RSA key pair${NC}"
+    echo -e "  ${DC}[2]${NC} ${W}Hash string (MD5/SHA)${NC}"
+    echo -e "  ${DC}[3]${NC} ${W}Caesar cipher${NC}"
+    echo -e "  ${DC}[4]${NC} ${W}ROT13${NC}"
+    echo -e "  ${DC}[5]${NC} ${W}Generate random token${NC}"
+    echo -e "  ${DC}[0]${NC} Back"
+    echo -ne "\n  ${M}▶${NC} "; read -r r
+    case "$r" in
+      1) openssl genrsa -out "$PHANTOMSEC_DIR/key.pem" 2048 2>/dev/null
+         openssl rsa -in "$PHANTOMSEC_DIR/key.pem" -pubout -out "$PHANTOMSEC_DIR/key.pub" 2>/dev/null
+         echo -e "  ${G}[✓] Saved to $PHANTOMSEC_DIR/key.pem & key.pub${NC}"; press_enter ;;
+      2) echo -ne "  String: "; read -r s
+         echo -e "  ${G}MD5:${NC}    $(echo -n "$s" | md5sum | cut -d' ' -f1)"
+         echo -e "  ${G}SHA1:${NC}   $(echo -n "$s" | sha1sum | cut -d' ' -f1)"
+         echo -e "  ${G}SHA256:${NC} $(echo -n "$s" | sha256sum | cut -d' ' -f1)"; press_enter ;;
+      3) echo -ne "  Text: "; read -r t; echo -ne "  Shift (1-25): "; read -r sh
+         sh="${sh:-13}"
+         echo "$t" | python3 -c "
+import sys, string
+sh=int('$sh') % 26
+t=sys.stdin.read().rstrip()
+out=''
+for c in t:
+    if c in string.ascii_uppercase: out+=string.ascii_uppercase[(string.ascii_uppercase.index(c)+sh)%26]
+    elif c in string.ascii_lowercase: out+=string.ascii_lowercase[(string.ascii_lowercase.index(c)+sh)%26]
+    else: out+=c
+print(out)"; press_enter ;;
+      4) echo -ne "  Text: "; read -r t; echo "$t" | tr 'A-Za-z' 'N-ZA-Mn-za-m'; press_enter ;;
+      5) openssl rand -hex 32; press_enter ;;
+      0) return ;;
+      *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
+    esac
+  done
 }
 
 # ── 10  Tool Manager ───────────────────────────────────────────────────
@@ -663,7 +689,7 @@ menu_tool_manager() {
         done; press_enter ;;
       2) pkg update -y && pkg upgrade -y; echo -e "\n  ${G}[✓] Updated${NC}"; press_enter ;;
       3) pkg install -y nmap hydra sqlmap nikto curl wget git openssl-tool; echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
-      4) echo -e "  ${G}[✓] PhantomSec v${VERSION} is already the latest.${NC}"; press_enter ;;
+      4) bash "$(dirname "$0")/update.sh"; press_enter ;;
       0) return ;;
     esac
   done
@@ -671,33 +697,46 @@ menu_tool_manager() {
 
 # ── 11  Sessions ───────────────────────────────────────────────────────
 menu_sessions() {
-  show_banner; draw_box "  📊 SESSIONS & REPORTS" 66; echo ""
-  echo -e "  ${W}Session logs:${NC}"; echo ""
-  ls -lht "$PHANTOMSEC_DIR/logs/" 2>/dev/null | head -10 || echo "  (no logs)"
-  echo ""; echo -e "  ${W}Reports:${NC}"; echo ""
-  ls -lht "$PHANTOMSEC_DIR/reports/" 2>/dev/null | head -10 || echo "  (no reports)"
-  echo ""
-  echo -e "  ${DC}[1]${NC} View a log file  ${DC}[2]${NC} Clear all logs  ${DC}[0]${NC} Back"
-  echo -ne "\n  ${M}▶${NC} "; read -r r
-  case "$r" in
-    1) echo -ne "  Filename: "; read -r f; cat "$PHANTOMSEC_DIR/logs/$f" 2>/dev/null; press_enter ;;
-    2) rm -f "$PHANTOMSEC_DIR/logs/"* "$PHANTOMSEC_DIR/reports/"*; echo -e "  ${G}[✓] Cleared${NC}"; press_enter ;;
-  esac
+  while true; do
+    show_banner; draw_box "  📊 SESSIONS & REPORTS" 66; echo ""
+    echo -e "  ${W}Session logs:${NC}"; echo ""
+    ls -lht "$PHANTOMSEC_DIR/logs/" 2>/dev/null | head -10 || echo "  (no logs)"
+    echo ""; echo -e "  ${W}Reports:${NC}"; echo ""
+    ls -lht "$PHANTOMSEC_DIR/reports/" 2>/dev/null | head -10 || echo "  (no reports)"
+    echo ""
+    echo -e "  ${DC}[1]${NC} View a log file  ${DC}[2]${NC} Clear all logs  ${DC}[0]${NC} Back"
+    echo -ne "\n  ${M}▶${NC} "; read -r r
+    case "$r" in
+      1) echo -ne "  Filename: "; read -r f; cat "$PHANTOMSEC_DIR/logs/$f" 2>/dev/null; press_enter ;;
+      2) rm -f "$PHANTOMSEC_DIR/logs/"* "$PHANTOMSEC_DIR/reports/"*; echo -e "  ${G}[✓] Cleared${NC}"; press_enter ;;
+      0) return ;;
+    esac
+  done
 }
 
 # ── 12  Settings ───────────────────────────────────────────────────────
 menu_settings() {
-  show_banner; draw_box "  ⚙️  SETTINGS" 66; echo ""
-  echo -e "  ${DC}[1]${NC} ${W}View config${NC}              ${DC}[2]${NC} ${W}Set Shodan API key${NC}"
-  echo -e "  ${DC}[3]${NC} ${W}Change shell (zsh/bash)${NC}  ${DC}[4]${NC} ${W}About PhantomSec${NC}"
-  echo -e "  ${DC}[0]${NC} Back"
-  echo -ne "\n  ${M}▶${NC} "; read -r r
-  case "$r" in
-    1) cat "$HOME/.config/phantomsec/settings.conf" 2>/dev/null || echo "  (no config)"; press_enter ;;
-    2) echo -ne "  ${C}Shodan API key:${NC} "; read -rs k; echo "SHODAN_API_KEY=$k" >> "$HOME/.config/phantomsec/settings.conf"; echo -e "\n  ${G}[✓] Saved${NC}"; press_enter ;;
-    3) chsh -s "$(which zsh)" 2>/dev/null && echo -e "  ${G}[✓] Shell changed to zsh${NC}"; press_enter ;;
-    4) show_about; press_enter ;;
-  esac
+  while true; do
+    show_banner; draw_box "  ⚙️  SETTINGS" 66; echo ""
+    echo -e "  ${DC}[1]${NC} ${W}View config${NC}              ${DC}[2]${NC} ${W}Set Shodan API key${NC}"
+    echo -e "  ${DC}[3]${NC} ${W}Change shell (zsh/bash)${NC}  ${DC}[4]${NC} ${W}About PhantomSec${NC}"
+    echo -e "  ${DC}[0]${NC} Back"
+    echo -ne "\n  ${M}▶${NC} "; read -r r
+    case "$r" in
+      1) cat "$HOME/.config/phantomsec/settings.conf" 2>/dev/null || echo "  (no config)"; press_enter ;;
+      2) echo -ne "  ${C}Shodan API key:${NC} "; read -rs k; echo ""
+         local cfg="$HOME/.config/phantomsec/settings.conf"
+         if grep -q "^SHODAN_API_KEY=" "$cfg" 2>/dev/null; then
+           sed -i "s|^SHODAN_API_KEY=.*|SHODAN_API_KEY=\"$k\"|" "$cfg"
+         else
+           echo "SHODAN_API_KEY=\"$k\"" >> "$cfg"
+         fi
+         echo -e "  ${G}[✓] Saved${NC}"; press_enter ;;
+      3) chsh -s "$(which zsh)" 2>/dev/null && echo -e "  ${G}[✓] Shell changed to zsh${NC}"; press_enter ;;
+      4) show_about; press_enter ;;
+      0) return ;;
+    esac
+  done
 }
 
 show_about() {
