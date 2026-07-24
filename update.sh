@@ -78,7 +78,9 @@ BEFORE_COMMIT="$(git rev-parse HEAD 2>/dev/null)"
 
 # ตรวจจับ branch ปัจจุบัน แทนการ hardcode main
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo 'main')"
-PULL_OUTPUT="$(git pull origin "$CURRENT_BRANCH" 2>&1)"
+git stash --quiet 2>/dev/null || true
+PULL_OUTPUT="$(git pull --rebase origin "$CURRENT_BRANCH" 2>&1)"
+git stash pop --quiet 2>/dev/null || true
 PULL_STATUS=$?
 
 echo "$PULL_OUTPUT" | while IFS= read -r line; do
