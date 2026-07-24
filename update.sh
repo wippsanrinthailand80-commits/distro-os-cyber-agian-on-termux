@@ -76,7 +76,9 @@ cd "$REPO_DIR" || exit 1
 # บันทึก commit ก่อน pull เพื่อแสดง changelog
 BEFORE_COMMIT="$(git rev-parse HEAD 2>/dev/null)"
 
-PULL_OUTPUT="$(git pull origin main 2>&1)"
+# ตรวจจับ branch ปัจจุบัน แทนการ hardcode main
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo 'main')"
+PULL_OUTPUT="$(git pull origin "$CURRENT_BRANCH" 2>&1)"
 PULL_STATUS=$?
 
 echo "$PULL_OUTPUT" | while IFS= read -r line; do

@@ -184,6 +184,9 @@ menu_recon() {
     echo -e "${M}${V}${NC}  ${DC}[8]${NC}  ${W}Banner Grabbing${NC}            ${DIM}(nc / curl)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[9]${NC}  ${W}WhatWeb Fingerprint${NC}        $(tool_status whatweb)"
     echo -e "${M}${V}${NC}  ${DC}[10]${NC} ${W}theHarvester OSINT${NC}         $(tool_status theHarvester)"
+    echo -e "${M}${V}${NC}  ${DC}[11]${NC} ${W}Wayback Machine Lookup${NC}     ${DIM}(archive.org)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[12]${NC} ${W}SSL Certificate Inspector${NC}  ${DIM}(openssl)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[13]${NC} ${W}Email OSINT${NC}                ${DIM}(leaks & breach check)${NC}"
     echo -e "${M}${V}${NC}"
     echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back to Main Menu"
     echo -e "${M}${V}${NC}"
@@ -201,6 +204,9 @@ menu_recon() {
       8) run_banner ;;
       9) run_whatweb ;;
       10) run_harvester ;;
+      11) run_wayback ;;
+      12) run_ssl_inspect ;;
+      13) run_email_osint ;;
       0) return ;;
     esac
   done
@@ -311,7 +317,8 @@ run_banner() {
   echo -ne "  ${C}Host:${NC} "; read -r h
   echo -ne "  ${C}Port:${NC} "; read -r p
   echo ""; draw_line "─" 66
-  timeout 5 bash -c "echo '' | nc -w 3 $(printf '%q' "$h") $(printf '%q' "$p")" 2>&1
+  # เรียก nc โดยตรง ป้องกัน double-evaluation ใน bash -c
+  echo "" | timeout 5 nc -w 3 "$h" "$p" 2>&1 || echo -e "  ${Y}[!] Connection timed out or refused${NC}"
   draw_line "─" 66; press_enter
 }
 
@@ -325,6 +332,7 @@ menu_vuln_scan() {
     echo -e "${M}${V}${NC}  ${DC}[4]${NC}  ${W}SSL/TLS Checker${NC}            ${DIM}(ssllabs)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}Custom Nmap Vuln Script${NC}    ${DIM}(--script vuln)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}Nuclei Scanner${NC}             $(tool_status nuclei)"
+    echo -e "${M}${V}${NC}  ${DC}[7]${NC}  ${W}OWASP Quick Check${NC}          ${DIM}(headers+dirs+methods)${NC}"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
@@ -332,11 +340,12 @@ menu_vuln_scan() {
       1) echo -ne "  ${C}Target URL:${NC} "; read -r t; echo ""; nikto -h "$t" 2>&1 | tee "$PHANTOMSEC_DIR/reports/nikto_$(date +%s).txt"; press_enter ;;
       2) echo -e "  ${Y}[!] OpenVAS requires a running OpenVAS server. Use Nuclei (option 6) for Termux.${NC}"; press_enter ;;
       3) echo -ne "  ${C}CVE ID (e.g. CVE-2021-44228):${NC} "; read -r cve
-         curl -s "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=$cve" | python3 -m json.tool 2>/dev/null | head -50; press_enter ;;
+         curl -s --max-time 10 "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=$cve" | python3 -m json.tool 2>/dev/null | head -50; press_enter ;;
       4) echo -ne "  ${C}Domain:${NC} "; read -r d
-         curl -s "https://api.ssllabs.com/api/v3/analyze?host=$d&startNew=on" | python3 -m json.tool 2>/dev/null | head -40; press_enter ;;
+         curl -s --max-time 15 "https://api.ssllabs.com/api/v3/analyze?host=$d&startNew=on" | python3 -m json.tool 2>/dev/null | head -40; press_enter ;;
       5) echo -ne "  ${C}Target:${NC} "; read -r t; nmap --script vuln "$t" 2>&1 | tee "$PHANTOMSEC_DIR/reports/vulnscan_$(date +%s).txt"; press_enter ;;
       6) run_nuclei ;;
+      7) run_owasp_check ;;
       0) return ;;
     esac
   done
@@ -538,6 +547,13 @@ run_passgen() {
   show_banner; draw_box "  PASSWORD GENERATOR" 66; echo ""
   echo -ne "  ${C}Length [default 16]:${NC} "; read -r len; len="${len:-16}"
   echo -ne "  ${C}Count [default 10]:${NC} "; read -r cnt; cnt="${cnt:-10}"
+  # ตรวจสอบว่าเป็นตัวเลขบวก
+  if ! [[ "$len" =~ ^[1-9][0-9]*$ ]]; then
+    echo -e "  ${R}[✗] Length ต้องเป็นตัวเลขบวก${NC}"; press_enter; return
+  fi
+  if ! [[ "$cnt" =~ ^[1-9][0-9]*$ ]]; then
+    echo -e "  ${R}[✗] Count ต้องเป็นตัวเลขบวก${NC}"; press_enter; return
+  fi
   echo ""; draw_line "─" 66
   for i in $(seq 1 "$cnt"); do
     tr -dc 'A-Za-z0-9!@#$%^&*()_+\-=' < /dev/urandom | head -c "$len"; echo
@@ -572,6 +588,8 @@ menu_network() {
     echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}Open Ports (localhost)${NC}     ${DIM}(ss -tuln)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}Packet Inspector${NC}           ${DIM}(tcpdump)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[7]${NC}  ${W}Masscan Fast Scan${NC}          $(tool_status masscan)"
+    echo -e "${M}${V}${NC}  ${DC}[8]${NC}  ${W}IP Reputation Check${NC}        ${DIM}(AbuseIPDB / OTX)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[9]${NC}  ${W}MAC Vendor Lookup${NC}          ${DIM}(api.macvendors.com)${NC}"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
@@ -583,6 +601,8 @@ menu_network() {
       5) ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null; press_enter ;;
       6) echo -ne "  ${C}Interface [wlan0]:${NC} "; read -r i; i="${i:-wlan0}"; tcpdump -i "$i" -c 20 2>&1; press_enter ;;
       7) run_masscan ;;
+      8) run_ip_reputation ;;
+      9) run_mac_lookup ;;
       0) return ;;
     esac
   done
@@ -640,17 +660,24 @@ menu_forensics() {
     echo -e "  ${DC}[2]${NC} ${W}MD5 / SHA256 Checksum${NC}"
     echo -e "  ${DC}[3]${NC} ${W}Hex dump${NC}"
     echo -e "  ${DC}[4]${NC} ${W}Base64 encode/decode${NC}"
+    echo -e "  ${DC}[5]${NC} ${W}Password Strength Meter${NC}"
+    echo -e "  ${DC}[6]${NC} ${W}Log File Analyzer${NC}         ${DIM}(pattern scan)${NC}"
     echo -e "  ${DC}[0]${NC} Back"
     echo -ne "\n  ${M}▶${NC} "; read -r r
     case "$r" in
-      1) echo -ne "  File: "; read -r f; strings "$f" | head -50; press_enter ;;
+      1) echo -ne "  File: "; read -r f
+         [ -f "$f" ] && strings "$f" | head -50 || echo -e "  ${R}[✗] ไม่พบไฟล์${NC}"; press_enter ;;
       2) echo -ne "  File: "; read -r f
+         if [ ! -f "$f" ]; then echo -e "  ${R}[✗] ไม่พบไฟล์${NC}"; press_enter; continue; fi
          echo -e "${G}MD5:${NC}    $(md5sum "$f" | cut -d' ' -f1)"
          echo -e "${G}SHA256:${NC} $(sha256sum "$f" | cut -d' ' -f1)"; press_enter ;;
-      3) echo -ne "  File: "; read -r f; xxd "$f" | head -20; press_enter ;;
+      3) echo -ne "  File: "; read -r f
+         [ -f "$f" ] && xxd "$f" | head -20 || echo -e "  ${R}[✗] ไม่พบไฟล์${NC}"; press_enter ;;
       4) echo -e "  ${DC}[1]${NC} Encode  ${DC}[2]${NC} Decode"; read -r m
          echo -ne "  String: "; read -r s
          case "$m" in 1) echo "$s" | base64;; 2) echo "$s" | base64 -d;; esac; press_enter ;;
+      5) run_pass_strength ;;
+      6) run_log_analyzer ;;
       0) return ;;
       *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
     esac
@@ -666,12 +693,15 @@ menu_crypto() {
     echo -e "  ${DC}[3]${NC} ${W}Caesar cipher${NC}"
     echo -e "  ${DC}[4]${NC} ${W}ROT13${NC}"
     echo -e "  ${DC}[5]${NC} ${W}Generate random token${NC}"
+    echo -e "  ${DC}[6]${NC} ${W}JWT Decoder${NC}               ${DIM}(decode without verify)${NC}"
+    echo -e "  ${DC}[7]${NC} ${W}Multi Encoder/Decoder${NC}     ${DIM}(hex, url, html, base64)${NC}"
     echo -e "  ${DC}[0]${NC} Back"
     echo -ne "\n  ${M}▶${NC} "; read -r r
     case "$r" in
       1) openssl genrsa -out "$PHANTOMSEC_DIR/key.pem" 2048 2>/dev/null
          openssl rsa -in "$PHANTOMSEC_DIR/key.pem" -pubout -out "$PHANTOMSEC_DIR/key.pub" 2>/dev/null
-         echo -e "  ${G}[✓] Saved to $PHANTOMSEC_DIR/key.pem & key.pub${NC}"; press_enter ;;
+         chmod 600 "$PHANTOMSEC_DIR/key.pem"
+         echo -e "  ${G}[✓] Saved to $PHANTOMSEC_DIR/key.pem & key.pub (chmod 600)${NC}"; press_enter ;;
       2) echo -ne "  String: "; read -r s
          echo -e "  ${G}MD5:${NC}    $(echo -n "$s" | md5sum | cut -d' ' -f1)"
          echo -e "  ${G}SHA1:${NC}   $(echo -n "$s" | sha1sum | cut -d' ' -f1)"
@@ -679,18 +709,22 @@ menu_crypto() {
       3) echo -ne "  Text: "; read -r t; echo -ne "  Shift (1-25): "; read -r sh
          sh="${sh:-13}"
          if ! [[ "$sh" =~ ^[0-9]+$ ]]; then echo -e "  ${R}[x] Shift must be a number.${NC}"; press_enter; continue; fi
-         echo "$t" | python3 -c "
+         # ส่ง shift ผ่าน stdin แทนการ embed ใน python code ป้องกัน injection
+         printf '%s\n%s\n' "$sh" "$t" | python3 -c "
 import sys, string
-sh=int('$sh') % 26
-t=sys.stdin.read().rstrip()
-out=''
+lines = sys.stdin.read().splitlines()
+sh = int(lines[0]) % 26
+t = '\n'.join(lines[1:])
+out = ''
 for c in t:
-    if c in string.ascii_uppercase: out+=string.ascii_uppercase[(string.ascii_uppercase.index(c)+sh)%26]
-    elif c in string.ascii_lowercase: out+=string.ascii_lowercase[(string.ascii_lowercase.index(c)+sh)%26]
-    else: out+=c
+    if c in string.ascii_uppercase: out += string.ascii_uppercase[(string.ascii_uppercase.index(c)+sh)%26]
+    elif c in string.ascii_lowercase: out += string.ascii_lowercase[(string.ascii_lowercase.index(c)+sh)%26]
+    else: out += c
 print(out)"; press_enter ;;
       4) echo -ne "  Text: "; read -r t; echo "$t" | tr 'A-Za-z' 'N-ZA-Mn-za-m'; press_enter ;;
       5) openssl rand -hex 32; press_enter ;;
+      6) run_jwt_decode ;;
+      7) run_multi_encoder ;;
       0) return ;;
       *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
     esac
@@ -790,12 +824,15 @@ menu_settings() {
          cat "$PHANTOMSEC_DIR/config/settings.conf" 2>/dev/null || echo "  (no config found at $PHANTOMSEC_DIR/config/settings.conf)"; press_enter ;;
       2) echo -ne "  ${C}Shodan API key:${NC} "; read -rs k; echo ""
          local cfg="$PHANTOMSEC_DIR/config/settings.conf"
+         mkdir -p "$(dirname "$cfg")"
          if grep -q "^SHODAN_API_KEY=" "$cfg" 2>/dev/null; then
            sed -i "s|^SHODAN_API_KEY=.*|SHODAN_API_KEY=\"$k\"|" "$cfg"
          else
            echo "SHODAN_API_KEY=\"$k\"" >> "$cfg"
          fi
-         echo -e "  ${G}[✓] Saved${NC}"; press_enter ;;
+         # ป้องกันไม่ให้ user อื่นอ่าน API keys
+         chmod 600 "$cfg" 2>/dev/null || true
+         echo -e "  ${G}[✓] Saved (chmod 600)${NC}"; press_enter ;;
       3) chsh -s "$(which zsh)" 2>/dev/null && echo -e "  ${G}[✓] Shell changed to zsh${NC}"; press_enter ;;
       4) show_about; press_enter ;;
       0) return ;;
@@ -1069,6 +1106,432 @@ menu_social() {
       *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
     esac
   done
+}
+
+# ══════════════════════════════════════════════════════════════════════
+#  NEW TOOLS — Recon / Vuln / Network / Crypto / Forensics
+# ══════════════════════════════════════════════════════════════════════
+
+# ── Wayback Machine ────────────────────────────────────────────────────
+run_wayback() {
+  show_banner; draw_box "  WAYBACK MACHINE LOOKUP" 66; echo ""
+  echo -ne "  ${C}URL or domain:${NC} "; read -r url
+  url="${url#https://}"; url="${url#http://}"; url="${url%/}"
+  echo ""; draw_line "─" 66
+  echo -e "${G}[+] Checking availability on Wayback Machine...${NC}"; echo ""
+  local avail
+  avail=$(curl -s --max-time 10 "https://archive.org/wayback/available?url=${url}" 2>/dev/null)
+  if echo "$avail" | grep -q '"closest"'; then
+    local snap_url snap_ts
+    snap_url=$(echo "$avail" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('archived_snapshots',{}).get('closest',{}).get('url','N/A'))" 2>/dev/null)
+    snap_ts=$(echo  "$avail" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('archived_snapshots',{}).get('closest',{}).get('timestamp','N/A'))" 2>/dev/null)
+    echo -e "  ${G}[✓] Snapshot found!${NC}"
+    echo -e "  ${C}Timestamp:${NC} $snap_ts"
+    echo -e "  ${C}URL:${NC}       $snap_url"
+  else
+    echo -e "  ${Y}[!] No snapshot found for: $url${NC}"
+  fi
+  echo ""
+  echo -e "${G}[+] CDX API — last 5 snapshots:${NC}"; echo ""
+  curl -s --max-time 12 \
+    "http://web.archive.org/cdx/search/cdx?url=${url}&output=text&limit=5&fl=timestamp,statuscode,mimetype&from=20200101" \
+    2>/dev/null | awk '{printf "  %s  HTTP:%s  %s\n", $1, $2, $3}' || echo "  (ไม่พบข้อมูล)"
+  draw_line "─" 66; press_enter
+}
+
+# ── SSL Certificate Inspector ──────────────────────────────────────────
+run_ssl_inspect() {
+  show_banner; draw_box "  SSL CERTIFICATE INSPECTOR" 66; echo ""
+  echo -ne "  ${C}Domain (e.g. example.com):${NC} "; read -r domain
+  echo -ne "  ${C}Port [default 443]:${NC} "; read -r sport; sport="${sport:-443}"
+  echo ""; draw_line "─" 66
+  if ! command -v openssl &>/dev/null; then
+    echo -e "  ${R}[✗] openssl not found. Install: pkg install openssl-tool${NC}"; press_enter; return
+  fi
+  local cert_info
+  cert_info=$(echo "" | timeout 8 openssl s_client -connect "${domain}:${sport}" -servername "$domain" 2>/dev/null \
+    | openssl x509 -noout -subject -issuer -dates -fingerprint -sha256 2>/dev/null)
+  if [ -z "$cert_info" ]; then
+    echo -e "  ${R}[✗] ไม่สามารถดึงข้อมูล certificate ได้ ตรวจสอบ domain/port${NC}"
+    press_enter; return
+  fi
+  echo "$cert_info" | while IFS= read -r line; do
+    echo -e "  ${G}${line}${NC}"
+  done
+  echo ""
+  # ตรวจสอบวันหมดอายุ
+  local not_after days_left
+  not_after=$(echo "" | timeout 8 openssl s_client -connect "${domain}:${sport}" -servername "$domain" 2>/dev/null \
+    | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+  if [ -n "$not_after" ]; then
+    local exp_epoch now_epoch
+    exp_epoch=$(date -d "$not_after" +%s 2>/dev/null || date -j -f "%b %d %T %Y %Z" "$not_after" +%s 2>/dev/null || echo 0)
+    now_epoch=$(date +%s)
+    days_left=$(( (exp_epoch - now_epoch) / 86400 ))
+    if [ "$days_left" -lt 30 ]; then
+      echo -e "  ${R}[!] EXPIRES IN $days_left DAYS — ต้องต่ออายุเร็วๆ นี้!${NC}"
+    elif [ "$days_left" -lt 90 ]; then
+      echo -e "  ${Y}[!] Expires in $days_left days${NC}"
+    else
+      echo -e "  ${G}[✓] Valid for $days_left more days${NC}"
+    fi
+  fi
+  draw_line "─" 66; press_enter
+}
+
+# ── Email OSINT ────────────────────────────────────────────────────────
+run_email_osint() {
+  show_banner; draw_box "  EMAIL OSINT" 66; echo ""
+  echo -e "  ${Y}[!] ใช้เพื่อตรวจสอบอีเมลตัวเองหรือระบบที่ได้รับอนุญาตเท่านั้น${NC}"; echo ""
+  echo -ne "  ${C}Email address:${NC} "; read -r email
+  if [[ ! "$email" =~ ^[^@]+@[^@]+\.[^@]+$ ]]; then
+    echo -e "  ${R}[✗] รูปแบบอีเมลไม่ถูกต้อง${NC}"; press_enter; return
+  fi
+  echo ""; draw_line "─" 66
+  local domain="${email##*@}"
+  echo -e "${G}[+] Domain info for $domain:${NC}"
+  dig +short MX "$domain" 2>/dev/null | head -5
+  echo ""
+  echo -e "${G}[+] HaveIBeenPwned check (unofficial endpoint):${NC}"
+  local hibp
+  hibp=$(curl -s --max-time 10 -H "User-Agent: PhantomSec/1.3" \
+    "https://haveibeenpwned.com/api/v3/breachedaccount/${email}?truncateResponse=false" 2>/dev/null)
+  if echo "$hibp" | grep -q '"Name"'; then
+    echo -e "  ${R}[!] อีเมลพบใน breaches:${NC}"
+    echo "$hibp" | python3 -c "
+import sys, json
+try:
+  data = json.load(sys.stdin)
+  for b in data[:10]:
+    print(f'  • {b.get(\"Name\",\"?\")} ({b.get(\"BreachDate\",\"?\")})')
+except: print('  (parse error)')
+" 2>/dev/null
+  elif [ "$hibp" = "Not found." ] || echo "$hibp" | grep -q "404"; then
+    echo -e "  ${G}[✓] ไม่พบใน known breaches${NC}"
+  else
+    echo -e "  ${Y}[!] ต้องใช้ API key สำหรับ HaveIBeenPwned (hibp.com/api)${NC}"
+  fi
+  echo ""
+  echo -e "${G}[+] Certificate transparency (subdomains of $domain):${NC}"
+  curl -s --max-time 10 "https://crt.sh/?q=%25.${domain}&output=json" 2>/dev/null \
+    | python3 -c "
+import sys,json
+try:
+  d=json.load(sys.stdin)
+  names=sorted(set(x.get('name_value','') for x in d))
+  for n in names[:15]: print(f'  {n}')
+except: print('  (error)')
+" 2>/dev/null || echo "  (ไม่พบข้อมูล)"
+  draw_line "─" 66; press_enter
+}
+
+# ── OWASP Quick Check ──────────────────────────────────────────────────
+run_owasp_check() {
+  show_banner; draw_box "  OWASP QUICK CHECK" 66; echo ""
+  echo -ne "  ${C}Target URL (with https://):${NC} "; read -r url
+  url="${url%/}"
+  echo ""; draw_line "─" 66; echo ""
+  local report="$PHANTOMSEC_DIR/reports/owasp_$(date +%s).txt"
+  {
+  echo "=== OWASP Quick Check: $url ==="
+  echo "Date: $(date)"
+  echo ""
+
+  echo "--- A01: Security Headers ---"
+  local hdrs; hdrs=$(curl -sI --max-time 10 "$url" 2>/dev/null)
+  local checks=("Strict-Transport-Security" "Content-Security-Policy" "X-Frame-Options"
+                 "X-Content-Type-Options" "X-XSS-Protection" "Referrer-Policy"
+                 "Permissions-Policy" "Cache-Control")
+  for h in "${checks[@]}"; do
+    if echo "$hdrs" | grep -qi "^$h"; then
+      echo "[✓] $h"
+      echo -e "  ${G}[✓]${NC} $h" >&2
+    else
+      echo "[✗] MISSING: $h"
+      echo -e "  ${R}[✗]${NC} $h — MISSING" >&2
+    fi
+  done
+
+  echo ""; echo "--- A02: Sensitive Files Exposed ---"
+  for path in /.git/HEAD /.env /wp-config.php /config.php /backup.zip /.DS_Store /robots.txt /sitemap.xml; do
+    local code; code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 6 "${url}${path}" 2>/dev/null)
+    if [ "$code" = "200" ]; then
+      echo "[!] EXPOSED: ${url}${path}"
+      echo -e "  ${R}[!] EXPOSED:${NC} ${url}${path}" >&2
+    fi
+  done
+
+  echo ""; echo "--- A05: HTTP Methods Allowed ---"
+  local methods; methods=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 -X OPTIONS "$url" 2>/dev/null)
+  local allow; allow=$(curl -sI --max-time 8 -X OPTIONS "$url" 2>/dev/null | grep -i "^Allow:" || echo "Not disclosed")
+  echo "OPTIONS response: $methods | $allow"
+  echo -e "  ${C}HTTP Methods:${NC} $allow" >&2
+  if echo "$allow" | grep -qiE "PUT|DELETE|TRACE|CONNECT"; then
+    echo "[!] Dangerous methods allowed"
+    echo -e "  ${R}[!] Dangerous methods detected${NC}" >&2
+  fi
+
+  echo ""; echo "--- A07: Clickjacking check ---"
+  if echo "$hdrs" | grep -qi "X-Frame-Options\|frame-ancestors"; then
+    echo "[✓] Clickjacking protection present"
+    echo -e "  ${G}[✓]${NC} Clickjacking protected" >&2
+  else
+    echo "[✗] No clickjacking protection"
+    echo -e "  ${R}[✗]${NC} Clickjacking — NOT protected" >&2
+  fi
+
+  } > "$report" 2>/dev/null
+  echo ""
+  echo -e "  ${G}[✓] Report saved: $report${NC}"
+  draw_line "─" 66; press_enter
+}
+
+# ── IP Reputation Check ────────────────────────────────────────────────
+run_ip_reputation() {
+  show_banner; draw_box "  IP REPUTATION CHECK" 66; echo ""
+  echo -ne "  ${C}IP Address:${NC} "; read -r target_ip
+  if [[ ! "$target_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+    echo -e "  ${R}[✗] รูปแบบ IP ไม่ถูกต้อง${NC}"; press_enter; return
+  fi
+  echo ""; draw_line "─" 66
+  echo -e "${G}[+] GeoIP / ISP info:${NC}"
+  curl -s --max-time 8 "http://ip-api.com/json/${target_ip}?fields=country,regionName,city,isp,org,as,proxy,hosting,query" \
+    2>/dev/null | python3 -m json.tool 2>/dev/null | grep -v "^{$\|^}$" \
+    | sed 's/^/  /'
+  echo ""
+  echo -e "${G}[+] AbuseIPDB check (no key - public endpoint):${NC}"
+  local abuse
+  abuse=$(curl -s --max-time 10 "https://api.abuseipdb.com/api/v2/check?ipAddress=${target_ip}&maxAgeInDays=90" \
+    -H "Key: " -H "Accept: application/json" 2>/dev/null)
+  if echo "$abuse" | grep -q '"abuseConfidenceScore"'; then
+    echo "$abuse" | python3 -c "
+import sys,json
+try:
+  d=json.load(sys.stdin).get('data',{})
+  print(f'  Abuse Score: {d.get(\"abuseConfidenceScore\",\"?\")}%')
+  print(f'  Total Reports: {d.get(\"totalReports\",\"?\")}')
+  print(f'  Last Reported: {d.get(\"lastReportedAt\",\"Never\")}')
+  print(f'  Is Tor: {d.get(\"isTor\",False)}')
+except: pass
+" 2>/dev/null
+  else
+    echo -e "  ${Y}[!] AbuseIPDB requires API key — ตั้งค่าได้ใน Settings${NC}"
+  fi
+  echo ""
+  echo -e "${G}[+] Reverse DNS:${NC}"
+  host "$target_ip" 2>/dev/null | head -3 | sed 's/^/  /' || echo "  (ไม่พบ)"
+  echo ""
+  echo -e "${G}[+] OTX AlienVault (public):${NC}"
+  curl -s --max-time 10 "https://otx.alienvault.com/api/v1/indicators/IPv4/${target_ip}/general" \
+    2>/dev/null | python3 -c "
+import sys,json
+try:
+  d=json.load(sys.stdin)
+  print(f'  Pulse count: {d.get(\"pulse_info\",{}).get(\"count\",0)}')
+  print(f'  Country: {d.get(\"country_name\",\"?\")}')
+except: print('  (ไม่พบข้อมูล)')
+" 2>/dev/null
+  draw_line "─" 66; press_enter
+}
+
+# ── MAC Vendor Lookup ──────────────────────────────────────────────────
+run_mac_lookup() {
+  show_banner; draw_box "  MAC VENDOR LOOKUP" 66; echo ""
+  echo -ne "  ${C}MAC Address (e.g. AA:BB:CC:DD:EE:FF):${NC} "; read -r mac
+  mac=$(echo "$mac" | tr '[:lower:]' '[:upper:]' | tr -d '-')
+  if [[ ! "$mac" =~ ^([0-9A-F]{2}:){5}[0-9A-F]{2}$ ]] && \
+     [[ ! "$mac" =~ ^[0-9A-F]{12}$ ]]; then
+    echo -e "  ${R}[✗] รูปแบบ MAC ไม่ถูกต้อง (ใช้ XX:XX:XX:XX:XX:XX)${NC}"; press_enter; return
+  fi
+  echo ""; draw_line "─" 66
+  local vendor
+  vendor=$(curl -s --max-time 8 "https://api.macvendors.com/${mac}" 2>/dev/null)
+  if [ -n "$vendor" ] && ! echo "$vendor" | grep -q "errors\|Not Found"; then
+    echo -e "  ${G}[✓] Vendor:${NC} $vendor"
+  else
+    # Fallback: ใช้ oui.txt ถ้ามี
+    local prefix="${mac:0:8}"
+    echo -e "  ${Y}[!] Vendor ไม่พบจาก API${NC}"
+    echo -e "  ${C}OUI Prefix:${NC} $prefix"
+  fi
+  echo ""
+  # แสดง OUI info
+  echo -e "  ${C}First 3 octets (OUI):${NC} ${mac:0:8}"
+  draw_line "─" 66; press_enter
+}
+
+# ── JWT Decoder ────────────────────────────────────────────────────────
+run_jwt_decode() {
+  show_banner; draw_box "  JWT DECODER" 66; echo ""
+  echo -e "  ${Y}[!] Decode เท่านั้น — ไม่ verify signature${NC}"; echo ""
+  echo -ne "  ${C}Paste JWT token:${NC} "; read -r jwt
+  if [[ ! "$jwt" =~ ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$ ]]; then
+    echo -e "  ${R}[✗] รูปแบบ JWT ไม่ถูกต้อง (ต้องมี 3 ส่วนคั่นด้วย .)${NC}"; press_enter; return
+  fi
+  echo ""; draw_line "─" 66
+  python3 - "$jwt" << 'PYJWT'
+import sys, base64, json
+
+def b64_decode(s):
+    # เพิ่ม padding
+    s += '=' * (4 - len(s) % 4)
+    try:
+        return json.loads(base64.urlsafe_b64decode(s).decode('utf-8', errors='replace'))
+    except Exception as e:
+        return {"error": str(e)}
+
+token = sys.argv[1]
+parts = token.split('.')
+if len(parts) != 3:
+    print("  [✗] Invalid JWT format"); sys.exit(1)
+
+header  = b64_decode(parts[0])
+payload = b64_decode(parts[1])
+
+print("\n  \033[0;36mHEADER:\033[0m")
+for k, v in header.items():
+    print(f"    {k}: {v}")
+
+print("\n  \033[0;36mPAYLOAD:\033[0m")
+for k, v in payload.items():
+    if k in ('iat','exp','nbf'):
+        import datetime
+        try:
+            dt = datetime.datetime.utcfromtimestamp(int(v)).strftime('%Y-%m-%d %T UTC')
+            print(f"    {k}: {v}  ({dt})")
+        except:
+            print(f"    {k}: {v}")
+    else:
+        print(f"    {k}: {v}")
+
+print("\n  \033[0;36mSIGNATURE:\033[0m  (not verified)")
+print(f"    {parts[2][:40]}...")
+
+import datetime, time
+if 'exp' in payload:
+    try:
+        exp = int(payload['exp'])
+        remaining = exp - int(time.time())
+        if remaining < 0:
+            print(f"\n  \033[0;31m[!] TOKEN EXPIRED {abs(remaining)//3600}h {(abs(remaining)%3600)//60}m ago\033[0m")
+        elif remaining < 300:
+            print(f"\n  \033[1;33m[!] Expires in {remaining}s (< 5 min)\033[0m")
+        else:
+            print(f"\n  \033[0;32m[✓] Valid for {remaining//3600}h {(remaining%3600)//60}m\033[0m")
+    except: pass
+PYJWT
+  draw_line "─" 66; press_enter
+}
+
+# ── Multi Encoder / Decoder ────────────────────────────────────────────
+run_multi_encoder() {
+  show_banner; draw_box "  MULTI ENCODER / DECODER" 66; echo ""
+  echo -ne "  ${C}Input text:${NC} "; read -r input
+  echo ""
+  echo -e "  ${DC}[1]${NC} Encode  ${DC}[2]${NC} Decode"
+  echo -ne "  ${M}▶${NC} "; read -r mode
+  echo ""; draw_line "─" 66
+  if [ "$mode" = "1" ]; then
+    echo -e "${G}[ENCODE]${NC}"
+    echo -e "  ${C}Base64:${NC}   $(echo -n "$input" | base64)"
+    echo -e "  ${C}Hex:${NC}      $(echo -n "$input" | xxd -p | tr -d '\n')"
+    echo -e "  ${C}URL:${NC}      $(printf '%s' "$input" | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))' 2>/dev/null)"
+    echo -e "  ${C}HTML ent:${NC} $(printf '%s' "$input" | python3 -c 'import sys,html; print(html.escape(sys.stdin.read()))' 2>/dev/null)"
+    echo -e "  ${C}ROT13:${NC}    $(echo "$input" | tr 'A-Za-z' 'N-ZA-Mn-za-m')"
+  else
+    echo -e "${G}[DECODE]${NC}"
+    echo -e "  ${C}Base64:${NC}   $(echo "$input" | base64 -d 2>/dev/null || echo '(error)')"
+    echo -e "  ${C}Hex:${NC}      $(echo "$input" | xxd -r -p 2>/dev/null || echo '(error)')"
+    echo -e "  ${C}URL:${NC}      $(printf '%s' "$input" | python3 -c 'import sys,urllib.parse; print(urllib.parse.unquote(sys.stdin.read()))' 2>/dev/null)"
+    echo -e "  ${C}HTML ent:${NC} $(printf '%s' "$input" | python3 -c 'import sys,html; print(html.unescape(sys.stdin.read()))' 2>/dev/null)"
+    echo -e "  ${C}ROT13:${NC}    $(echo "$input" | tr 'A-Za-z' 'N-ZA-Mn-za-m')"
+  fi
+  draw_line "─" 66; press_enter
+}
+
+# ── Password Strength Meter ────────────────────────────────────────────
+run_pass_strength() {
+  show_banner; draw_box "  PASSWORD STRENGTH METER" 66; echo ""
+  echo -ne "  ${C}Password (ไม่บันทึก):${NC} "; read -rs pwd; echo ""
+  echo ""; draw_line "─" 66
+  local len=${#pwd}
+  local score=0 notes=()
+
+  [ "$len" -ge 8  ] && ((score++)) || notes+=("ความยาวน้อยกว่า 8 ตัว")
+  [ "$len" -ge 12 ] && ((score++)) || notes+=("แนะนำ 12+ ตัวอักษร")
+  [ "$len" -ge 16 ] && ((score++)  )
+  [[ "$pwd" =~ [A-Z] ]] && ((score++)) || notes+=("ไม่มีตัวพิมพ์ใหญ่")
+  [[ "$pwd" =~ [a-z] ]] && ((score++)) || notes+=("ไม่มีตัวพิมพ์เล็ก")
+  [[ "$pwd" =~ [0-9] ]] && ((score++)) || notes+=("ไม่มีตัวเลข")
+  [[ "$pwd" =~ [^A-Za-z0-9] ]] && ((score++)) || notes+=("ไม่มีอักขระพิเศษ (!@#$...)")
+
+  # entropy estimate
+  local charset=0
+  [[ "$pwd" =~ [a-z] ]]        && ((charset+=26))
+  [[ "$pwd" =~ [A-Z] ]]        && ((charset+=26))
+  [[ "$pwd" =~ [0-9] ]]        && ((charset+=10))
+  [[ "$pwd" =~ [^A-Za-z0-9] ]] && ((charset+=32))
+  local entropy=0
+  [ "$charset" -gt 0 ] && entropy=$(python3 -c "import math; print(round($len * math.log2($charset), 1))" 2>/dev/null || echo "N/A")
+
+  echo -e "  ${C}ความยาว:${NC}   $len ตัว"
+  echo -e "  ${C}Entropy:${NC}   ${entropy} bits"
+  echo ""
+
+  local bar="" i
+  for ((i=0; i<score; i++)); do bar="${bar}█"; done
+  for ((i=score; i<7; i++)); do bar="${bar}░"; done
+
+  local label color
+  if   [ "$score" -ge 6 ]; then label="STRONG"    color="$G"
+  elif [ "$score" -ge 4 ]; then label="MODERATE"  color="$Y"
+  elif [ "$score" -ge 2 ]; then label="WEAK"       color="$R"
+  else                           label="VERY WEAK" color="$R"
+  fi
+
+  echo -e "  ${color}[${bar}]  ${score}/7 — ${label}${NC}"
+  echo ""
+  for n in "${notes[@]}"; do
+    echo -e "  ${Y}[!]${NC} $n"
+  done
+  draw_line "─" 66; press_enter
+}
+
+# ── Log File Analyzer ──────────────────────────────────────────────────
+run_log_analyzer() {
+  show_banner; draw_box "  LOG FILE ANALYZER" 66; echo ""
+  echo -ne "  ${C}Log file path:${NC} "; read -r logf
+  if [ ! -f "$logf" ]; then
+    echo -e "  ${R}[✗] ไม่พบไฟล์: $logf${NC}"; press_enter; return
+  fi
+  echo ""; draw_line "─" 66
+  local lines; lines=$(wc -l < "$logf")
+  echo -e "  ${C}Total lines:${NC} $lines"
+  echo ""
+  echo -e "${G}[+] Error patterns:${NC}"
+  grep -cE "(error|ERROR|CRITICAL|FATAL|exception|Exception)" "$logf" 2>/dev/null \
+    | xargs -I{} echo -e "  Errors found: {}"
+  echo ""
+  echo -e "${G}[+] Top 10 IPs:${NC}"
+  grep -oE '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b' "$logf" 2>/dev/null \
+    | sort | uniq -c | sort -rn | head -10 \
+    | awk '{printf "  %5s × %s\n", $1, $2}'
+  echo ""
+  echo -e "${G}[+] HTTP Status codes:${NC}"
+  grep -oE ' [1-5][0-9]{2} ' "$logf" 2>/dev/null \
+    | sort | uniq -c | sort -rn | head -10 \
+    | awk '{printf "  %5s × HTTP%s\n", $1, $2}'
+  echo ""
+  echo -e "${G}[+] Suspicious patterns:${NC}"
+  local suspicious=("sql\|select\|union\|insert\|drop" "../\|%2e%2e" "passwd\|shadow\|etc/passwd" "<script\|onerror\|onload" "cmd=\|exec=\|system(")
+  for pattern in "${suspicious[@]}"; do
+    local cnt; cnt=$(grep -ciE "$pattern" "$logf" 2>/dev/null || echo 0)
+    [ "$cnt" -gt 0 ] && echo -e "  ${R}[!] ${cnt}× match:${NC} $pattern"
+  done
+  echo ""
+  echo -e "${G}[+] Last 5 lines:${NC}"
+  tail -5 "$logf" | sed 's/^/  /'
+  draw_line "─" 66; press_enter
 }
 
 # ── 14  Honeypot ───────────────────────────────────────────────────────

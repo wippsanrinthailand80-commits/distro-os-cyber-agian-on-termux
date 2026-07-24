@@ -22,7 +22,12 @@ skipped=0
 
 remove_path() {
   local path="$1"
-  local label="$2"
+  local label="${2:-$1}"
+  # Guard: ถ้า path ว่างหรือเป็น root ให้ข้ามทันที ป้องกัน rm -rf /
+  if [ -z "$path" ] || [ "$path" = "/" ] || [ "$path" = "$HOME" ]; then
+    err "ข้ามเส้นทางที่ไม่ปลอดภัย: '${label}'"
+    return 1
+  fi
   if [ -e "$path" ] || [ -L "$path" ]; then
     rm -rf "$path" && ok "ลบแล้ว: ${DIM}${label}${NC}" && ((removed++)) || err "ลบไม่ได้: ${label}"
   else
@@ -30,12 +35,20 @@ remove_path() {
   fi
 }
 
-# ── ลบ RC block จาก .bashrc / .zshrc ด้วย Python3 ──────────────────
+# ── ลบ RC block จาก .bashrc / .zshrc ──────────────────────────────
 clean_rc() {
   local rcfile="$1"
   [ -f "$rcfile" ] || return
 
-  # ใช้ Python3 ลบทุกบรรทัดที่เกี่ยวกับ PhantomSec ออกเป็น block
+  # ตรวจสอบว่า python3 มีอยู่ก่อน ถ้าไม่มีให้ใช้ sed fallback
+  if ! command -v python3 &>/dev/null; then
+    warn "python3 ไม่พบ — ใช้ sed fallback สำหรับ $(basename "$rcfile")"
+    sed -i '/# PhantomSec/d; /alias phantomsec=/d; /PHANTOMSEC_DIR/d' "$rcfile" 2>/dev/null \
+      && ok "ล้าง RC lines จาก $(basename "$rcfile") (sed)" \
+      || err "ล้างไม่ได้: $(basename "$rcfile")"
+    return
+  fi
+
   python3 - "$rcfile" << 'PYEOF'
 import sys, re, os
 

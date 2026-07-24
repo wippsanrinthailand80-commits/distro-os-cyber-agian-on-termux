@@ -102,8 +102,12 @@ else
 fi
 
 # ตรวจสอบพื้นที่ว่าง (ต้องการ ~500MB)
-FREE_KB=$(df "$HOME" 2>/dev/null | awk 'NR==2{print $4}')
-FREE_MB=$(( ${FREE_KB:-0} / 1024 ))
+# ใช้ -BM เพื่อได้ MB โดยตรง รองรับ df หลายรูปแบบ
+FREE_MB=$(df -BM "$HOME" 2>/dev/null | awk 'NR==2{gsub(/M/,""); print $4}' 2>/dev/null)
+if ! [[ "${FREE_MB:-}" =~ ^[0-9]+$ ]]; then
+  FREE_MB=$(df "$HOME" 2>/dev/null | awk 'NR==2{print $4}')
+  FREE_MB=$(( ${FREE_MB:-0} / 1024 ))
+fi
 if [ "$FREE_MB" -lt 300 ]; then
   warn "พื้นที่ว่างน้อย (${FREE_MB}MB) — แนะนำ 500MB ขึ้นไป"
 else
@@ -247,7 +251,9 @@ echo -e "  ${G}[✓]${NC} Launcher → ${DIM}$PHANTOMSEC_BIN${NC}"
 # config
 mkdir -p "$HOME/.config/phantomsec"
 cp -f "$SCRIPT_DIR/config/settings.conf" "$HOME/.config/phantomsec/" 2>/dev/null || true
-echo -e "  ${G}[✓]${NC} Config พร้อม"
+# ป้องกัน API keys ไม่ให้ user อื่นอ่านได้
+chmod 600 "$HOME/.config/phantomsec/settings.conf" 2>/dev/null || true
+echo -e "  ${G}[✓]${NC} Config พร้อม (chmod 600)"
 
 # ══════════════════════════════════════════════════════════════════════
 #  STEP 8 — Configure shell aliases
