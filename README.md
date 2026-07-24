@@ -53,7 +53,19 @@
 
 ## ⚡ Quick Install
 
-Open **Termux** on your Android device and run:
+### วิธีที่ 1 — One-Command (แนะนำ)
+
+เปิด **Termux** แล้วรันคำสั่งเดียว:
+
+```bash
+curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/bootstrap.sh | bash
+```
+
+> Bootstrap จะ clone repo และรัน installer ให้อัตโนมัติ
+
+---
+
+### วิธีที่ 2 — Manual Install
 
 ```bash
 pkg update -y && pkg install -y git
@@ -91,19 +103,24 @@ phantomsec
 ## 📁 File Structure
 
 ```
-distro-os-cyber-again-on-termux/
-├── install.sh            # One-command installer
+distro-os-cyber-agian-on-termux/
+├── bootstrap.sh          # One-command installer (curl | bash)
+├── install.sh            # Full installer with step counter & summary
 ├── phantomsec.sh         # Main interactive UI
 ├── update.sh             # Updater script
 ├── uninstall.sh          # Uninstaller
+├── python_tools.sh       # Optional Python security libs
 ├── config/
 │   └── settings.conf     # Configuration file
 ├── modules/
 │   ├── recon.sh          # Standalone recon module
 │   ├── webexploit.sh     # Standalone web exploit module
-│   └── nettools.sh       # Standalone network tools module
+│   ├── nettools.sh       # Standalone network tools module
+│   └── privesc.sh        # Privilege escalation recon module
 ├── themes/
-│   └── matrix.sh         # Matrix rain terminal effect
+│   ├── matrix.sh         # Matrix rain terminal effect
+│   ├── dark.sh           # Dark colour theme
+│   └── classic.sh        # Classic green-on-black theme
 └── docs/
     ├── TOOLS.md          # Detailed tool reference
     └── USAGE.md          # Usage guide & examples
