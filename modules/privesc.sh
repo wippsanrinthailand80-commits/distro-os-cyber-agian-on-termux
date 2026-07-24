@@ -28,7 +28,7 @@ fi
 # ── 3. SUID binaries ──────────────────────────────────────────────────
 echo -e "\n${G}[+] SUID Binaries (world-executable)${NC}"
 # จำกัด maxdepth=8 และ exclude /proc /sys /dev เพื่อป้องกัน hang บน Android
-find / -maxdepth 8 -perm -4000 -type f \
+timeout 60 find / -maxdepth 8 -perm -4000 -type f \
   ! -path "/proc/*" ! -path "/sys/*" ! -path "/dev/*" ! -path "/apex/*" \
   2>/dev/null | head -20 | while read -r bin; do
   echo -e "  ${Y}$bin${NC}"
@@ -37,7 +37,7 @@ echo -e "  ${DIM}(truncated to top 20, maxdepth=8, excluding /proc /sys /dev /ap
 
 # ── 4. World-writable directories ─────────────────────────────────────
 echo -e "\n${G}[+] World-Writable Directories${NC}"
-find / -maxdepth 5 -type d -perm -o+w \
+timeout 60 find / -maxdepth 5 -type d -perm -o+w \
   ! -path "/proc/*" ! -path "/sys/*" ! -path "/dev/*" \
   2>/dev/null | head -10 | while read -r d; do
   echo -e "  ${Y}$d${NC}"
