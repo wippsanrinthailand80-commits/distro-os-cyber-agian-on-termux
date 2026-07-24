@@ -134,6 +134,8 @@ main_menu() {
     echo -e "${M}${V}${NC}  ${DC}${BOLD}[10]${NC}  ${W}📦 Tool Manager${NC}                        ${DIM}Install & update${NC}"
     echo -e "${M}${V}${NC}  ${DC}${BOLD}[11]${NC}  ${W}📊 Session Manager${NC}                     ${DIM}Logs & reports${NC}"
     echo -e "${M}${V}${NC}  ${DC}${BOLD}[12]${NC}  ${W}⚙️  Settings${NC}                            ${DIM}Config & themes${NC}"
+    echo -e "${M}${V}${NC}  ${DC}${BOLD}[13]${NC}  ${W}🎣 Social Engineering${NC}                  ${DIM}Phishing & SE tools${NC}"
+    echo -e "${M}${V}${NC}  ${DC}${BOLD}[14]${NC}  ${W}🍯 Honeypot${NC}                            ${DIM}Trap & log attackers${NC}"
     echo -e "${M}${V}${NC}"
     echo -e "${M}${V}${NC}  ${R}${BOLD}[00]${NC}  ${DIM}Exit PhantomSec${NC}"
     echo -e "${M}${V}${NC}"
@@ -159,6 +161,7 @@ main_menu() {
       11) menu_sessions ;;
       12) menu_settings ;;
       13) menu_social ;;
+      14) menu_honeypot ;;
       0|00) exit_phantom ;;
       *) echo -e "  ${R}Invalid option. Try again.${NC}"; sleep 1 ;;
     esac
@@ -218,21 +221,21 @@ run_nmap() {
   echo ""
   echo -ne "  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r st; echo -ne "${NC}"
 
-  local flags
+  local flags=()
   case "$st" in
-    1) flags="-F" ;;
-    2) flags="-p-" ;;
-    3) flags="-sV -sC" ;;
-    4) flags="-O" ;;
-    5) echo -ne "  ${C}Enter nmap flags:${NC} "; read -r flags ;;
-    *) flags="-F" ;;
+    1) flags=(-F) ;;
+    2) flags=(-p-) ;;
+    3) flags=(-sV -sC) ;;
+    4) flags=(-O) ;;
+    5) echo -ne "  ${C}Enter nmap flags:${NC} "; read -r xflags; read -ra flags <<< "$xflags" ;;
+    *) flags=(-F) ;;
   esac
 
   echo ""
   draw_line "─" 66
-  echo -e "${G}[+] Running: nmap $flags $target${NC}"
+  echo -e "${G}[+] Running: nmap ${flags[*]} $target${NC}"
   draw_line "─" 66
-  nmap $flags "$target" 2>&1 | tee "$PHANTOMSEC_DIR/reports/nmap_$(date +%s).txt"
+  nmap "${flags[@]}" "$target" 2>&1 | tee "$PHANTOMSEC_DIR/reports/nmap_$(date +%s).txt"
   draw_line "─" 66
   echo -e "${G}[✓] Report saved to $PHANTOMSEC_DIR/reports/${NC}"
   log "Nmap scan: $flags $target"
@@ -262,7 +265,6 @@ run_dns() {
 run_subdomain() {
   show_banner; draw_box "  SUBDOMAIN FINDER" 66; echo ""
   echo -ne "  ${C}Base domain (e.g. example.com):${NC} "; read -r domain
-  local wl="$PHANTOMSEC_DIR/wordlists/common-passwords.txt"
   local subs=("www" "mail" "ftp" "admin" "vpn" "api" "dev" "staging" "blog" "shop" "portal" "cdn" "static" "app" "mobile")
   echo ""
   draw_line "─" 66
@@ -309,7 +311,7 @@ run_banner() {
   echo -ne "  ${C}Host:${NC} "; read -r h
   echo -ne "  ${C}Port:${NC} "; read -r p
   echo ""; draw_line "─" 66
-  timeout 5 bash -c "echo '' | nc -w 3 $h $p" 2>&1
+  timeout 5 bash -c "echo '' | nc -w 3 $(printf '%q' "$h") $(printf '%q' "$p")" 2>&1
   draw_line "─" 66; press_enter
 }
 
@@ -371,13 +373,13 @@ run_sqlmap() {
   echo -e "\n  ${W}Options:${NC}"
   echo -e "  ${DC}[1]${NC} Basic scan     ${DC}[2]${NC} Dump databases     ${DC}[3]${NC} Custom flags"
   echo -ne "\n  ${M}▶${NC} "; read -r o
-  local flags="--batch --level=3 --risk=2"
+  local flags=(--batch --level=3 --risk=2)
   case "$o" in
-    2) flags="$flags --dbs" ;;
-    3) echo -ne "  ${C}Extra flags:${NC} "; read -r xf; flags="$flags $xf" ;;
+    2) flags+=(--dbs) ;;
+    3) echo -ne "  ${C}Extra flags:${NC} "; read -r xf; read -ra xfarr <<< "$xf"; flags+=("${xfarr[@]}") ;;
   esac
   echo ""; draw_line "─" 66
-  sqlmap -u "$url" $flags 2>&1 | tee "$PHANTOMSEC_DIR/reports/sqlmap_$(date +%s).txt"
+  sqlmap -u "$url" "${flags[@]}" 2>&1 | tee "$PHANTOMSEC_DIR/reports/sqlmap_$(date +%s).txt"
   draw_line "─" 66; press_enter
 }
 
@@ -538,7 +540,7 @@ run_passgen() {
   echo -ne "  ${C}Count [default 10]:${NC} "; read -r cnt; cnt="${cnt:-10}"
   echo ""; draw_line "─" 66
   for i in $(seq 1 "$cnt"); do
-    tr -dc 'A-Za-z0-9!@#$%^&*()_+-=' < /dev/urandom | head -c "$len"; echo
+    tr -dc 'A-Za-z0-9!@#$%^&*()_+\-=' < /dev/urandom | head -c "$len"; echo
   done
   draw_line "─" 66; press_enter
 }
@@ -1067,6 +1069,211 @@ menu_social() {
       *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
     esac
   done
+}
+
+# ── 14  Honeypot ───────────────────────────────────────────────────────
+HONEYPOT_LOG="$PHANTOMSEC_DIR/logs/honeypot.log"
+HONEYPOT_PID_FILE="$PHANTOMSEC_DIR/honeypot.pid"
+
+menu_honeypot() {
+  while true; do
+    show_banner; draw_box "  🍯 HONEYPOT" 66; echo ""
+    echo -e "  ${Y}[!] Honeypot traps & logs unauthorised connection attempts.${NC}"
+    echo -e "  ${Y}[!] For defensive / educational use on systems you own only.${NC}"; echo ""
+    echo -e "  ${DC}[1]${NC}  ${W}Start TCP Honeypot${NC}          ${DIM}(fake listener — logs IPs)${NC}"
+    echo -e "  ${DC}[2]${NC}  ${W}Start HTTP Honeypot${NC}         ${DIM}(fake web server — logs reqs)${NC}"
+    echo -e "  ${DC}[3]${NC}  ${W}Multi-Port Honeypot${NC}         ${DIM}(SSH/FTP/Telnet decoys)${NC}"
+    echo -e "  ${DC}[4]${NC}  ${W}View Honeypot Logs${NC}          ${DIM}($HONEYPOT_LOG)${NC}"
+    echo -e "  ${DC}[5]${NC}  ${W}Stop All Honeypots${NC}"
+    echo -e "  ${DC}[6]${NC}  ${W}Live Monitor${NC}                ${DIM}(tail -f log)${NC}"
+    echo -e "  ${DC}[0]${NC}  Back"
+    echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
+    case "$r" in
+      1) run_honeypot_tcp ;;
+      2) run_honeypot_http ;;
+      3) run_honeypot_multi ;;
+      4) run_honeypot_viewlog ;;
+      5) stop_all_honeypots ;;
+      6) run_honeypot_monitor ;;
+      0) return ;;
+      *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
+    esac
+  done
+}
+
+# ── Honeypot: helpers ──────────────────────────────────────────────────
+_hp_log() {
+  local tag="$1"; shift
+  echo "[$(date '+%Y-%m-%d %T')] [$tag] $*" | tee -a "$HONEYPOT_LOG"
+}
+
+_hp_register_pid() {
+  echo "$1" >> "$HONEYPOT_PID_FILE"
+}
+
+# ── Honeypot: TCP listener ─────────────────────────────────────────────
+run_honeypot_tcp() {
+  show_banner; draw_box "  🍯 TCP HONEYPOT" 66; echo ""
+  if ! command -v nc &>/dev/null; then
+    echo -e "  ${R}[✗] netcat (nc) not found. Install: pkg install netcat-openbsd${NC}"; press_enter; return
+  fi
+  echo -ne "  ${C}Port to listen on [default 2222]:${NC} "; read -r hport
+  hport="${hport:-2222}"
+  if ! [[ "$hport" =~ ^[0-9]+$ ]] || [ "$hport" -lt 1 ] || [ "$hport" -gt 65535 ]; then
+    echo -e "  ${R}[✗] Invalid port.${NC}"; press_enter; return
+  fi
+  echo -ne "  ${C}Fake banner to show attackers [default: SSH-2.0-OpenSSH_8.9]:${NC} "; read -r banner
+  banner="${banner:-SSH-2.0-OpenSSH_8.9}"
+
+  echo ""
+  echo -e "  ${G}[✓] Starting TCP honeypot on port ${hport}...${NC}"
+  echo -e "  ${DIM}  Logging to: $HONEYPOT_LOG${NC}"
+  echo -e "  ${DIM}  Press Ctrl+C to stop.${NC}"; echo ""
+  _hp_log "TCP" "Honeypot started on port $hport with banner: $banner"
+
+  while true; do
+    local conn_info
+    # nc accepts one connection, prints the client's data, then loops
+    conn_info=$(echo -e "$banner\r\nConnection closed.\r\n" \
+      | nc -l -p "$hport" -q 1 2>/dev/null)
+    local src_ip
+    # On Termux nc doesn't expose peer; log timestamp + any received data
+    src_ip="unknown"
+    _hp_log "TCP" "Connection on :$hport | peer=$src_ip | data=$(echo "$conn_info" | head -3 | tr '\n' '|')"
+    echo -e "  ${G}[HIT]${NC}  $(date '+%T')  port=$hport  data=${conn_info:0:60}"
+  done
+  _hp_log "TCP" "Honeypot stopped on port $hport"
+}
+
+# ── Honeypot: HTTP listener ────────────────────────────────────────────
+run_honeypot_http() {
+  show_banner; draw_box "  🍯 HTTP HONEYPOT" 66; echo ""
+  echo -ne "  ${C}Port to listen on [default 8080]:${NC} "; read -r hport
+  hport="${hport:-8080}"
+  if ! [[ "$hport" =~ ^[0-9]+$ ]] || [ "$hport" -lt 1 ] || [ "$hport" -gt 65535 ]; then
+    echo -e "  ${R}[✗] Invalid port.${NC}"; press_enter; return
+  fi
+
+  echo ""
+  echo -e "  ${G}[✓] Starting HTTP honeypot on port ${hport}...${NC}"
+  echo -e "  ${DIM}  Logging to: $HONEYPOT_LOG${NC}"
+  echo -e "  ${DIM}  Press Ctrl+C to stop.${NC}"; echo ""
+  _hp_log "HTTP" "Honeypot started on port $hport"
+
+  # Fake HTTP response that looks like a real Apache server
+  local fake_response
+  fake_response="HTTP/1.1 200 OK\r\nServer: Apache/2.4.54 (Debian)\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n<html><body><h1>It works!</h1></body></html>\r\n"
+
+  while true; do
+    local request
+    request=$(printf '%b' "$fake_response" | nc -l -p "$hport" -q 1 2>/dev/null)
+    local req_line uri method
+    req_line=$(echo "$request" | head -1)
+    method=$(echo "$req_line" | awk '{print $1}')
+    uri=$(echo "$req_line" | awk '{print $2}')
+    _hp_log "HTTP" "Hit on :$hport | method=$method uri=$uri | raw=$(echo "$request" | head -3 | tr '\n' '|')"
+    echo -e "  ${G}[HIT]${NC}  $(date '+%T')  $method $uri"
+  done
+  _hp_log "HTTP" "Honeypot stopped on port $hport"
+}
+
+# ── Honeypot: Multi-port decoys ────────────────────────────────────────
+run_honeypot_multi() {
+  show_banner; draw_box "  🍯 MULTI-PORT HONEYPOT" 66; echo ""
+  echo -e "  ${W}Decoy ports:${NC}"
+  echo -e "  ${DC}22${NC}   — Fake SSH     ${DC}21${NC}   — Fake FTP"
+  echo -e "  ${DC}23${NC}   — Fake Telnet  ${DC}3306${NC} — Fake MySQL"
+  echo -e "  ${DC}8080${NC} — Fake HTTP    ${DC}4444${NC} — Generic trap"
+  echo ""
+  echo -ne "  ${C}Ports (space-separated) [default: 2222 2121 2323 8080 4444]:${NC} "; read -r port_input
+  port_input="${port_input:-2222 2121 2323 8080 4444}"
+  echo ""
+
+  local -A banners=([2222]="SSH-2.0-OpenSSH_8.9p1" [2121]="220 FTP server ready" [2323]="Termux login:" [8080]="HTTP/1.1 200 OK" [4444]="")
+  local pids=()
+
+  for p in $port_input; do
+    if ! [[ "$p" =~ ^[0-9]+$ ]] || [ "$p" -lt 1 ] || [ "$p" -gt 65535 ]; then
+      echo -e "  ${Y}[!] Skipping invalid port: $p${NC}"; continue
+    fi
+    local bnr="${banners[$p]:-PhantomSec Honeypot}"
+    (
+      _hp_log "MULTI" "Decoy started on port $p"
+      while true; do
+        local hit
+        hit=$(printf '%s\r\n' "$bnr" | nc -l -p "$p" -q 1 2>/dev/null)
+        _hp_log "MULTI" "Hit on :$p | data=$(echo "$hit" | head -2 | tr '\n' '|')"
+      done
+    ) &
+    local bg_pid=$!
+    pids+=($bg_pid)
+    _hp_register_pid "$bg_pid"
+    echo -e "  ${G}[✓]${NC} Listening on port ${DC}$p${NC} (PID $bg_pid)"
+  done
+
+  echo ""
+  echo -e "  ${Y}[!] All decoys running in background. Use option [5] to stop.${NC}"
+  press_enter
+}
+
+# ── Honeypot: view log ─────────────────────────────────────────────────
+run_honeypot_viewlog() {
+  show_banner; draw_box "  🍯 HONEYPOT LOG" 66; echo ""
+  if [ ! -f "$HONEYPOT_LOG" ]; then
+    echo -e "  ${Y}[!] No honeypot log found yet. Start a honeypot first.${NC}"
+  else
+    local total; total=$(wc -l < "$HONEYPOT_LOG")
+    echo -e "  ${C}Log file:${NC} $HONEYPOT_LOG  (${G}$total entries${NC})"
+    echo ""; draw_line "─" 66
+    # Summary stats
+    local tcp_hits http_hits multi_hits
+    tcp_hits=$(grep -c '\[TCP\].*Hit' "$HONEYPOT_LOG" 2>/dev/null || echo 0)
+    http_hits=$(grep -c '\[HTTP\].*Hit' "$HONEYPOT_LOG" 2>/dev/null || echo 0)
+    multi_hits=$(grep -c '\[MULTI\].*Hit' "$HONEYPOT_LOG" 2>/dev/null || echo 0)
+    echo -e "  ${G}TCP hits:${NC} $tcp_hits   ${G}HTTP hits:${NC} $http_hits   ${G}Multi hits:${NC} $multi_hits"
+    draw_line "─" 66; echo ""
+    tail -40 "$HONEYPOT_LOG"
+    draw_line "─" 66
+    echo ""
+    echo -e "  ${DC}[1]${NC} Export log  ${DC}[2]${NC} Clear log  ${DC}[0]${NC} Back"
+    echo -ne "\n  ${M}▶${NC} "; read -r o
+    case "$o" in
+      1) local out="$PHANTOMSEC_DIR/reports/honeypot_export_$(date +%s).txt"
+         cp "$HONEYPOT_LOG" "$out"
+         echo -e "  ${G}[✓] Exported to $out${NC}" ;;
+      2) > "$HONEYPOT_LOG"
+         echo -e "  ${G}[✓] Log cleared.${NC}" ;;
+    esac
+  fi
+  press_enter
+}
+
+# ── Honeypot: live monitor ─────────────────────────────────────────────
+run_honeypot_monitor() {
+  echo -e "  ${C}[*] Live honeypot monitor — press Ctrl+C to exit${NC}"
+  echo ""
+  touch "$HONEYPOT_LOG"
+  tail -f "$HONEYPOT_LOG"
+}
+
+# ── Honeypot: stop all ─────────────────────────────────────────────────
+stop_all_honeypots() {
+  show_banner; draw_box "  🍯 STOP HONEYPOTS" 66; echo ""
+  if [ ! -f "$HONEYPOT_PID_FILE" ]; then
+    echo -e "  ${Y}[!] No honeypot PIDs recorded.${NC}"; press_enter; return
+  fi
+  local killed=0
+  while IFS= read -r pid; do
+    if kill "$pid" 2>/dev/null; then
+      echo -e "  ${G}[✓] Killed PID $pid${NC}"
+      ((killed++))
+    fi
+  done < "$HONEYPOT_PID_FILE"
+  rm -f "$HONEYPOT_PID_FILE"
+  _hp_log "SYSTEM" "All honeypots stopped ($killed processes killed)"
+  echo ""
+  echo -e "  ${G}[✓] Stopped $killed honeypot process(es).${NC}"
+  press_enter
 }
 
 # ── Entry point ────────────────────────────────────────────────────────
