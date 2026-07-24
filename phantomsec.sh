@@ -3,7 +3,14 @@
 # ║          PhantomSec OS — Main Menu Interface v1.0.0                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
-VERSION="1.1.0"
+# อ่าน version จากไฟล์ VERSION แยก (เปลี่ยนได้โดย update.sh ไม่ต้องแก้ script)
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_VERSION_FILE="$_SCRIPT_DIR/VERSION"
+# ถ้ารันจาก $PREFIX/bin ให้หา VERSION ใน PHANTOMSEC_DIR แทน
+if [ ! -f "$_VERSION_FILE" ]; then
+  _VERSION_FILE="${PHANTOMSEC_DIR:-$HOME/.phantomsec}/VERSION"
+fi
+VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.2.0')"
 PHANTOMSEC_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
 LOG_FILE="$PHANTOMSEC_DIR/logs/session_$(date +%Y%m%d_%H%M%S).log"
 
