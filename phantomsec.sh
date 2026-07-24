@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec OS — Main Menu Interface v1.3.1                 ║
+# ║          PhantomSec OS — Main Menu Interface v1.4.1                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 # อ่าน version จากไฟล์ VERSION แยก (เปลี่ยนได้โดย update.sh ไม่ต้องแก้ script)
@@ -10,7 +10,7 @@ _VERSION_FILE="$_SCRIPT_DIR/VERSION"
 if [ ! -f "$_VERSION_FILE" ]; then
   _VERSION_FILE="${PHANTOMSEC_DIR:-$HOME/.phantomsec}/VERSION"
 fi
-VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.3.1')"
+VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.4.1')"
 PHANTOMSEC_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
 LOG_FILE="$PHANTOMSEC_DIR/logs/session_$(date +%Y%m%d_%H%M%S).log"
 
@@ -270,6 +270,10 @@ run_dns() {
 
 run_subdomain() {
   show_banner; draw_box "  SUBDOMAIN FINDER" 66; echo ""
+  if ! command -v host &>/dev/null && ! command -v dig &>/dev/null; then
+    echo -e "  ${Y}[!] ไม่พบ host/dig — กรุณาติดตั้ง dnsutils: pkg install dnsutils${NC}"
+    press_enter; return
+  fi
   echo -ne "  ${C}Base domain (e.g. example.com):${NC} "; read -r domain
   local subs=("www" "mail" "ftp" "admin" "vpn" "api" "dev" "staging" "blog" "shop" "portal" "cdn" "static" "app" "mobile")
   echo ""
@@ -289,7 +293,7 @@ run_geoip() {
   show_banner; draw_box "  GEOIP LOOKUP" 66; echo ""
   echo -ne "  ${C}IP Address:${NC} "; read -r ip
   echo ""; draw_line "─" 66
-  curl -s "http://ip-api.com/json/$ip" | python3 -m json.tool 2>/dev/null || curl -s "http://ip-api.com/json/$ip"
+  curl -s --max-time 10 "http://ip-api.com/json/$ip" | python3 -m json.tool 2>/dev/null || curl -s --max-time 10 "http://ip-api.com/json/$ip"
   draw_line "─" 66; press_enter
 }
 
@@ -297,7 +301,7 @@ run_headers() {
   show_banner; draw_box "  HTTP HEADER INSPECTOR" 66; echo ""
   echo -ne "  ${C}URL (with https://):${NC} "; read -r url
   echo ""; draw_line "─" 66
-  curl -sI "$url"
+  curl -sI --max-time 10 "$url"
   draw_line "─" 66; press_enter
 }
 
@@ -555,8 +559,8 @@ run_passgen() {
     echo -e "  ${R}[✗] Count ต้องเป็นตัวเลขบวก${NC}"; press_enter; return
   fi
   echo ""; draw_line "─" 66
-  for i in $(seq 1 "$cnt"); do
-    tr -dc 'A-Za-z0-9!@#$%^&*()_+\-=' < /dev/urandom | head -c "$len"; echo
+  for ((i=1; i<=cnt; i++)); do
+    LC_ALL=C tr -dc 'A-Za-z0-9!@#$%^&*_+=-' < /dev/urandom | head -c "$len"; echo
   done
   draw_line "─" 66; press_enter
 }
@@ -770,7 +774,7 @@ menu_tool_manager() {
       2) pkg update -y && pkg upgrade -y; echo -e "\n  ${G}[✓] Updated${NC}"; press_enter ;;
       3) pkg install -y nmap hydra sqlmap nikto curl wget git openssl-tool masscan aircrack-ng
          pip install theHarvester nuclei 2>/dev/null || true
-         pkg install -y golang 2>/dev/null && go install github.com/OJ/gobuster/v3@latest 2>/dev/null || true
+         pkg install -y golang 2>/dev/null && { export PATH="$PATH:$HOME/go/bin"; go install github.com/OJ/gobuster/v3@latest 2>/dev/null; } || true
          bash -c 'curl -fsSL https://projectdiscovery.io/nuclei.sh | bash' 2>/dev/null || true
          echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
       4) local _upd_script=""
@@ -1167,6 +1171,9 @@ run_ssl_inspect() {
     local exp_epoch now_epoch
     exp_epoch=$(date -d "$not_after" +%s 2>/dev/null || date -j -f "%b %d %T %Y %Z" "$not_after" +%s 2>/dev/null || echo 0)
     now_epoch=$(date +%s)
+    if [ "${exp_epoch:-0}" -eq 0 ]; then
+      echo -e "  ${Y}[!] ไม่สามารถแปลงวันหมดอายุได้${NC}"
+    else
     days_left=$(( (exp_epoch - now_epoch) / 86400 ))
     if [ "$days_left" -lt 30 ]; then
       echo -e "  ${R}[!] EXPIRES IN $days_left DAYS — ต้องต่ออายุเร็วๆ นี้!${NC}"
@@ -1655,7 +1662,8 @@ run_honeypot_multi() {
   local -A banners=([2222]="SSH-2.0-OpenSSH_8.9p1" [2121]="220 FTP server ready" [2323]="Termux login:" [8080]="HTTP/1.1 200 OK" [4444]="")
   local pids=()
 
-  for p in $port_input; do
+  read -ra _ports <<< "$port_input"
+  for p in "${_ports[@]}"; do
     if ! [[ "$p" =~ ^[0-9]+$ ]] || [ "$p" -lt 1 ] || [ "$p" -gt 65535 ]; then
       echo -e "  ${Y}[!] Skipping invalid port: $p${NC}"; continue
     fi
