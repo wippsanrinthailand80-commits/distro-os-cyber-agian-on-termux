@@ -1,3 +1,26 @@
+# CHANGELOG — PhantomSec OS
+
+## [1.4.1] — 2026-07-24
+
+### Fixed
+- `phantomsec.sh` header comment `v1.3.1` → `v1.4.1`
+- `phantomsec.sh` fallback version string `1.3.1` → `1.4.1` (shown when VERSION file is missing)
+- `run_passgen`: replaced `seq` loop with bash arithmetic `for ((i=1; i<=cnt; i++))` for portability
+- `run_passgen`: added `LC_ALL=C` to `tr -dc` to prevent locale-related failures on some Android builds
+- `run_geoip`: both `curl` calls were missing `--max-time 10` (could hang indefinitely)
+- `run_headers` (`curl -sI`): missing `--max-time 10`
+- `run_ssl_inspect`: `days_left` arithmetic now guarded — if `date` fails to parse expiry date (`exp_epoch=0`), skip calculation instead of producing a huge negative number
+- `run_honeypot_multi`: `for p in $port_input` → `read -ra _ports <<< "$port_input"` to prevent word-splitting issues
+- `run_subdomain`: added `command -v host` / `dig` check before scanning — shows friendly install hint if missing
+- `menu_tool_manager`: Gobuster `go install` now exports `$HOME/go/bin` to PATH in the same shell so binary is immediately available
+- `install.sh` header + `VERSION` variable: `1.3.1` → `1.4.1`
+- `install.sh` progress bar: replaced `seq` loops with bash arithmetic loops
+- `update.sh`: `git pull` replaced with `git stash → git pull --rebase → git stash pop` to avoid failure when local changes exist
+- `modules/privesc.sh`: both `find /` calls wrapped with `timeout 60` to prevent indefinite scanning on Android
+- `VERSION` file: `1.4.0` → `1.4.1`
+
+---
+
 # PhantomSec OS — Changelog
 
 All notable changes to this project will be documented here.
