@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║           PhantomSec OS — Termux Cybersecurity Distro               ║
-# ║                    Installer v1.1.0                                  ║
+# ║                    Installer v1.3.0                                  ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 R='\033[0;31m'  G='\033[0;32m'  Y='\033[1;33m'
@@ -10,7 +10,7 @@ BOLD='\033[1m'  DIM='\033[2m'   NC='\033[0m'
 
 PHANTOMSEC_DIR="$HOME/.phantomsec"
 PHANTOMSEC_BIN="$PREFIX/bin/phantomsec"
-VERSION="1.1.0"
+VERSION="1.3.0"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ── ตัวแปรติดตามสถานะ ─────────────────────────────────────────────────

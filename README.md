@@ -15,7 +15,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%20%2F%20Termux-green?style=flat-square&logo=android)](https://termux.com)
 [![Shell](https://img.shields.io/badge/Shell-Bash-blue?style=flat-square&logo=gnu-bash)](https://www.gnu.org/software/bash/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.1.0-purple?style=flat-square)]()
+[![Version](https://img.shields.io/badge/Version-1.3.0-purple?style=flat-square)]()
 [![Stars](https://img.shields.io/github/stars/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux/stargazers)
 
 **PhantomSec OS** turns your Android device + Termux into a full-featured cybersecurity research environment — with an interactive, colour-coded menu UI covering everything from recon to exploitation.
@@ -87,10 +87,10 @@ phantomsec
 
 | Category | Tools |
 |---|---|
-| 🔍 **Recon / OSINT** | nmap, whois, dig, shodan, geoip, banner grabber, subdomain finder |
+| 🔍 **Recon / OSINT** | nmap, whois, dig, shodan, geoip, banner grabber, subdomain finder, whatweb, theHarvester |
 | 🔓 **Vuln Scanning** | nikto, nmap --script vuln, CVE lookup, SSL checker |
 | 💉 **Web Exploitation** | sqlmap, XSS generator, dir bruteforce, LFI tester, CORS checker |
-| 🔑 **Password Attacks** | hydra, hash identifier, online hash cracker, password generator |
+| 🔑 **Password Attacks** | hydra, john, hash identifier, online hash cracker, password generator |
 | 📡 **Network Analysis** | nmap, traceroute, ARP scan, tcpdump, port scanner |
 | 📱 **Wireless** | termux-wifi-scaninfo, connection info |
 | 🐚 **Reverse Shells** | Bash, Python, PHP, Perl, Netcat payloads + listener |

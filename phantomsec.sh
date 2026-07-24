@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec OS — Main Menu Interface v1.0.0                 ║
+# ║          PhantomSec OS — Main Menu Interface v1.3.0                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 # อ่าน version จากไฟล์ VERSION แยก (เปลี่ยนได้โดย update.sh ไม่ต้องแก้ script)
@@ -96,7 +96,7 @@ BANNER2
   echo ""
   # System info bar
   local ip user_name platform
-  ip=$(curl -s ifconfig.me 2>/dev/null || echo "offline")
+  ip=$(curl -s --max-time 3 ifconfig.me 2>/dev/null || echo "offline")
   user_name=$(whoami)
   platform="Android/Termux"
   echo -e "  ${DIM}${C}󰞥${NC} ${DIM}User:${NC} ${W}$user_name${NC}   ${DIM}${C}󰱓${NC} ${DIM}IP:${NC} ${W}$ip${NC}   ${DIM}${C}󰌽${NC} ${DIM}Platform:${NC} ${W}$platform${NC}"
@@ -155,9 +155,10 @@ main_menu() {
       7|07) menu_shells ;;
       8|08) menu_forensics ;;
       9|09) menu_crypto ;;
-      10|10) menu_tool_manager ;;
-      11|11) menu_sessions ;;
-      12|12) menu_settings ;;
+      10) menu_tool_manager ;;
+      11) menu_sessions ;;
+      12) menu_settings ;;
+      13) menu_social ;;
       0|00) exit_phantom ;;
       *) echo -e "  ${R}Invalid option. Try again.${NC}"; sleep 1 ;;
     esac
@@ -178,6 +179,8 @@ menu_recon() {
     echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}HTTP Header Inspector${NC}      ${DIM}(curl)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[7]${NC}  ${W}Shodan Search${NC}              ${DIM}(API key required)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[8]${NC}  ${W}Banner Grabbing${NC}            ${DIM}(nc / curl)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[9]${NC}  ${W}WhatWeb Fingerprint${NC}        $(tool_status whatweb)"
+    echo -e "${M}${V}${NC}  ${DC}[10]${NC} ${W}theHarvester OSINT${NC}         $(tool_status theHarvester)"
     echo -e "${M}${V}${NC}"
     echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back to Main Menu"
     echo -e "${M}${V}${NC}"
@@ -193,6 +196,8 @@ menu_recon() {
       6) run_headers ;;
       7) run_shodan ;;
       8) run_banner ;;
+      9) run_whatweb ;;
+      10) run_harvester ;;
       0) return ;;
     esac
   done
@@ -316,16 +321,19 @@ menu_vuln_scan() {
     echo -e "${M}${V}${NC}  ${DC}[3]${NC}  ${W}CVE Lookup${NC}                 ${DIM}(nvd.nist.gov)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[4]${NC}  ${W}SSL/TLS Checker${NC}            ${DIM}(ssllabs)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}Custom Nmap Vuln Script${NC}    ${DIM}(--script vuln)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}Nuclei Scanner${NC}             $(tool_status nuclei)"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
     case "$r" in
       1) echo -ne "  ${C}Target URL:${NC} "; read -r t; echo ""; nikto -h "$t" 2>&1 | tee "$PHANTOMSEC_DIR/reports/nikto_$(date +%s).txt"; press_enter ;;
+      2) echo -e "  ${Y}[!] OpenVAS requires a running OpenVAS server. Use Nuclei (option 6) for Termux.${NC}"; press_enter ;;
       3) echo -ne "  ${C}CVE ID (e.g. CVE-2021-44228):${NC} "; read -r cve
          curl -s "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=$cve" | python3 -m json.tool 2>/dev/null | head -50; press_enter ;;
       4) echo -ne "  ${C}Domain:${NC} "; read -r d
          curl -s "https://api.ssllabs.com/api/v3/analyze?host=$d&startNew=on" | python3 -m json.tool 2>/dev/null | head -40; press_enter ;;
       5) echo -ne "  ${C}Target:${NC} "; read -r t; nmap --script vuln "$t" 2>&1 | tee "$PHANTOMSEC_DIR/reports/vulnscan_$(date +%s).txt"; press_enter ;;
+      6) run_nuclei ;;
       0) return ;;
     esac
   done
@@ -340,6 +348,7 @@ menu_web_exploit() {
     echo -e "${M}${V}${NC}  ${DC}[3]${NC}  ${W}Directory Bruteforce${NC}       ${DIM}(curl)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[4]${NC}  ${W}LFI Tester${NC}                 ${DIM}(built-in)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}CORS & Security Headers${NC}    ${DIM}(built-in)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}Gobuster Dir Scan${NC}          $(tool_status gobuster)"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
@@ -349,6 +358,7 @@ menu_web_exploit() {
       3) run_dirbust ;;
       4) run_lfi ;;
       5) run_cors ;;
+      6) run_gobuster ;;
       0) return ;;
     esac
   done
@@ -393,7 +403,7 @@ run_xss_gen() {
   echo -ne "  ${C}Test URL (blank to skip):${NC} "; read -r url
   if [ -n "$url" ]; then
     for p in "${payloads[@]}"; do
-      enc=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$p'))")
+      enc=$(printf '%s' "$p" | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read().rstrip()))')
       echo -ne "  Testing: ${DIM}$p${NC} ... "
       code=$(curl -s -o /dev/null -w "%{http_code}" "${url}${enc}")
       echo -e "${G}HTTP $code${NC}"
@@ -408,7 +418,7 @@ run_dirbust() {
   local dirs=("admin" "login" "dashboard" "wp-admin" "phpmyadmin" "backup" "config" "api" "uploads" "images" ".git" ".env" "robots.txt" "sitemap.xml" "console" "panel" "secret" "test" "dev" "old")
   echo ""; draw_line "─" 66; echo ""
   for d in "${dirs[@]}"; do
-    local code; code=$(curl -s -o /dev/null -w "%{http_code}" "$base/$d" 2>/dev/null)
+    local code; code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "$base/$d" 2>/dev/null)
     case "$code" in
       200) echo -e "  ${G}[200 FOUND ]${NC}  $base/$d" ;;
       301|302) echo -e "  ${Y}[${code} REDIR]${NC}  $base/$d" ;;
@@ -424,7 +434,7 @@ run_lfi() {
   local payloads=("../etc/passwd" "../../etc/passwd" "../../../etc/passwd" "../../../../etc/passwd" "/etc/passwd" "....//....//etc/passwd")
   echo ""; draw_line "─" 66
   for p in "${payloads[@]}"; do
-    result=$(curl -s "${url}${p}" 2>/dev/null | grep -c "root:" || true)
+    result=$(curl -s --max-time 5 "${url}${p}" 2>/dev/null | grep -c "root:" || true)
     if [ "$result" -gt 0 ]; then
       echo -e "  ${G}[VULNERABLE]${NC}  Payload: ${G}$p${NC}"
       curl -s "${url}${p}" | head -5
@@ -458,6 +468,7 @@ menu_password() {
     echo -e "${M}${V}${NC}  ${DC}[3]${NC}  ${W}Hash Cracker (online)${NC}      ${DIM}(hashes.com)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[4]${NC}  ${W}Password Generator${NC}         ${DIM}(built-in)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}Wordlist Manager${NC}           ${DIM}(built-in)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}John the Ripper${NC}            $(tool_status john)"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
@@ -467,6 +478,7 @@ menu_password() {
       3) run_hash_crack ;;
       4) run_passgen ;;
       5) run_wordlist_mgr ;;
+      6) run_john ;;
       0) return ;;
     esac
   done
@@ -556,6 +568,7 @@ menu_network() {
     echo -e "${M}${V}${NC}  ${DC}[4]${NC}  ${W}Ping Sweep${NC}                 ${DIM}(nmap -sP)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[5]${NC}  ${W}Open Ports (localhost)${NC}     ${DIM}(ss -tuln)${NC}"
     echo -e "${M}${V}${NC}  ${DC}[6]${NC}  ${W}Packet Inspector${NC}           ${DIM}(tcpdump)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[7]${NC}  ${W}Masscan Fast Scan${NC}          $(tool_status masscan)"
     echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
     draw_box_bottom 66
     echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
@@ -566,6 +579,7 @@ menu_network() {
       4) echo -ne "  ${C}Subnet:${NC} "; read -r s; nmap -sP "$s" 2>&1; press_enter ;;
       5) ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null; press_enter ;;
       6) echo -ne "  ${C}Interface [wlan0]:${NC} "; read -r i; i="${i:-wlan0}"; tcpdump -i "$i" -c 20 2>&1; press_enter ;;
+      7) run_masscan ;;
       0) return ;;
     esac
   done
@@ -580,11 +594,15 @@ menu_wireless() {
     echo -e "  ${W}Available info commands:${NC}"
     echo -e "  ${DC}[1]${NC} Show WiFi info (termux-wifi-connectioninfo)"
     echo -e "  ${DC}[2]${NC} Scan nearby WiFi (termux-wifi-scaninfo)"
+    echo -e "  ${DC}[3]${NC} Aircrack-ng — Capture handshake          $(tool_status aircrack-ng)"
+    echo -e "  ${DC}[4]${NC} Aircrack-ng — Crack WPA handshake        $(tool_status aircrack-ng)"
     echo -e "  ${DC}[0]${NC} Back"
     echo -ne "\n  ${M}▶${NC} "; read -r r
     case "$r" in
       1) termux-wifi-connectioninfo 2>/dev/null | python3 -m json.tool 2>/dev/null; press_enter ;;
       2) termux-wifi-scaninfo 2>/dev/null | python3 -m json.tool 2>/dev/null | head -60; press_enter ;;
+      3) run_aircrack_capture ;;
+      4) run_aircrack_crack ;;
       0) return ;;
       *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
     esac
@@ -689,13 +707,17 @@ menu_tool_manager() {
     case "$r" in
       1)
         show_banner; draw_box "  TOOL STATUS" 66; echo ""
-        local tools=("nmap" "sqlmap" "hydra" "nikto" "curl" "wget" "git" "python3" "openssl" "nc" "dig" "whois")
+        local tools=("nmap" "sqlmap" "hydra" "nikto" "curl" "wget" "git" "python3" "openssl" "nc" "dig" "whois" "masscan" "john" "gobuster" "nuclei" "whatweb" "aircrack-ng")
         for t in "${tools[@]}"; do
           printf "  %-20s" "$t"
           tool_status "$t"
         done; press_enter ;;
       2) pkg update -y && pkg upgrade -y; echo -e "\n  ${G}[✓] Updated${NC}"; press_enter ;;
-      3) pkg install -y nmap hydra sqlmap nikto curl wget git openssl-tool; echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
+      3) pkg install -y nmap hydra sqlmap nikto curl wget git openssl-tool masscan aircrack-ng
+         pip install theHarvester nuclei 2>/dev/null || true
+         pkg install -y golang 2>/dev/null && go install github.com/OJ/gobuster/v3@latest 2>/dev/null || true
+         bash -c 'curl -fsSL https://projectdiscovery.io/nuclei.sh | bash' 2>/dev/null || true
+         echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
       4) bash "$(dirname "$0")/update.sh"; press_enter ;;
       0) return ;;
     esac
@@ -732,7 +754,7 @@ menu_settings() {
     case "$r" in
       1) cat "$HOME/.config/phantomsec/settings.conf" 2>/dev/null || echo "  (no config)"; press_enter ;;
       2) echo -ne "  ${C}Shodan API key:${NC} "; read -rs k; echo ""
-         local cfg="$HOME/.config/phantomsec/settings.conf"
+         local cfg="$PHANTOMSEC_DIR/config/settings.conf"
          if grep -q "^SHODAN_API_KEY=" "$cfg" 2>/dev/null; then
            sed -i "s|^SHODAN_API_KEY=.*|SHODAN_API_KEY=\"$k\"|" "$cfg"
          else
@@ -766,6 +788,252 @@ exit_phantom() {
   echo -e "  ${DIM}Stay ethical. Stay sharp.${NC}"
   echo ""
   exit 0
+}
+
+
+# ── New Tools ──────────────────────────────────────────────────────────
+
+run_whatweb() {
+  show_banner; draw_box "  WHATWEB FINGERPRINT" 66; echo ""
+  echo -ne "  ${C}Target URL (e.g. https://example.com):${NC} "; read -r url
+  echo ""; draw_line "─" 66
+  if command -v whatweb &>/dev/null; then
+    whatweb -a 3 "$url" 2>&1 | tee "$PHANTOMSEC_DIR/reports/whatweb_$(date +%s).txt"
+  else
+    echo -e "  ${Y}[!] WhatWeb not installed. Install with: pip install whatweb${NC}"
+    echo -e "  ${C}[*] Fallback: curl fingerprint${NC}"; echo ""
+    curl -sI "$url" 2>/dev/null | grep -iE "server:|x-powered-by:|x-generator:|via:"
+  fi
+  draw_line "─" 66; press_enter
+}
+
+run_harvester() {
+  show_banner; draw_box "  THEHARVESTER — OSINT" 66; echo ""
+  echo -ne "  ${C}Target domain (e.g. example.com):${NC} "; read -r domain
+  echo -e "
+  ${W}Data source:${NC}"
+  echo -e "  ${DC}[1]${NC} Google  ${DC}[2]${NC} Bing  ${DC}[3]${NC} DuckDuckGo  ${DC}[4]${NC} All"
+  echo -ne "
+  ${M}▶${NC} "; read -r src
+  local source
+  case "$src" in 1) source="google";; 2) source="bing";; 3) source="duckduckgo";; *) source="all";; esac
+  echo ""; draw_line "─" 66
+  if command -v theHarvester &>/dev/null; then
+    theHarvester -d "$domain" -b "$source" 2>&1 | tee "$PHANTOMSEC_DIR/reports/harvester_$(date +%s).txt"
+  else
+    echo -e "  ${Y}[!] theHarvester not installed.${NC}"
+    echo -e "  ${C}Install: pip install theHarvester${NC}"
+    echo -e "
+  ${C}[*] Quick OSINT via cert transparency:${NC}"
+    curl -s "https://crt.sh/?q=%25.${domain}&output=json" 2>/dev/null \
+      | grep -o '"name_value":"[^"]*"' | sort -u | sed 's/"name_value":"//;s/"//' | head -30
+  fi
+  draw_line "─" 66; press_enter
+}
+
+run_nuclei() {
+  show_banner; draw_box "  NUCLEI SCANNER" 66; echo ""
+  echo -ne "  ${C}Target URL:${NC} "; read -r url
+  echo -e "
+  ${W}Severity:${NC}"
+  echo -e "  ${DC}[1]${NC} Critical+High  ${DC}[2]${NC} All  ${DC}[3]${NC} Tech detection only"
+  echo -ne "
+  ${M}▶${NC} "; read -r sv
+  echo ""; draw_line "─" 66
+  if command -v nuclei &>/dev/null; then
+    case "$sv" in
+      1) nuclei -u "$url" -severity critical,high 2>&1 | tee "$PHANTOMSEC_DIR/reports/nuclei_$(date +%s).txt" ;;
+      3) nuclei -u "$url" -tags tech 2>&1 | tee "$PHANTOMSEC_DIR/reports/nuclei_tech_$(date +%s).txt" ;;
+      *) nuclei -u "$url" 2>&1 | tee "$PHANTOMSEC_DIR/reports/nuclei_$(date +%s).txt" ;;
+    esac
+  else
+    echo -e "  ${Y}[!] Nuclei not installed.${NC}"
+    echo -e "  ${C}Install: bash -c \$(curl -fsSL https://projectdiscovery.io/nuclei.sh)${NC}"
+  fi
+  draw_line "─" 66; press_enter
+}
+
+run_gobuster() {
+  show_banner; draw_box "  GOBUSTER DIR SCAN" 66; echo ""
+  echo -ne "  ${C}Target URL (e.g. http://site.com):${NC} "; read -r url
+  echo -ne "  ${C}Wordlist [Enter for built-in small list]:${NC} "; read -r wl
+  echo -e "
+  ${W}Mode:${NC}"
+  echo -e "  ${DC}[1]${NC} Directory  ${DC}[2]${NC} DNS subdomain  ${DC}[3]${NC} Virtual host"
+  echo -ne "
+  ${M}▶${NC} "; read -r mode
+  echo ""; draw_line "─" 66
+  if command -v gobuster &>/dev/null; then
+    local list="${wl:-$PHANTOMSEC_DIR/wordlists/common.txt}"
+    # create a small built-in list if none exists
+    if [ ! -f "$list" ]; then
+      list="/tmp/ps_dirs.txt"
+      printf '%s
+' admin login dashboard wp-admin phpmyadmin backup config api uploads .git .env robots.txt console panel secret test dev old assets static media files > "$list"
+    fi
+    case "$mode" in
+      2) gobuster dns -d "$url" -w "$list" 2>&1 | tee "$PHANTOMSEC_DIR/reports/gobuster_$(date +%s).txt" ;;
+      3) gobuster vhost -u "$url" -w "$list" 2>&1 | tee "$PHANTOMSEC_DIR/reports/gobuster_$(date +%s).txt" ;;
+      *) gobuster dir -u "$url" -w "$list" -t 20 2>&1 | tee "$PHANTOMSEC_DIR/reports/gobuster_$(date +%s).txt" ;;
+    esac
+  else
+    echo -e "  ${Y}[!] Gobuster not installed. Running built-in curl scan instead...${NC}"; echo ""
+    local dirs=(admin login dashboard wp-admin phpmyadmin backup config api uploads .git .env robots.txt console panel secret test dev old)
+    for d in "${dirs[@]}"; do
+      local code; code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "$url/$d" 2>/dev/null)
+      case "$code" in
+        200) echo -e "  ${G}[200 FOUND ]${NC}  $url/$d" ;;
+        301|302) echo -e "  ${Y}[${code} REDIR]${NC}  $url/$d" ;;
+        403) echo -e "  ${DC}[403 FORBID]${NC}  $url/$d" ;;
+      esac
+    done
+    echo -e "
+  ${C}Install Gobuster: go install github.com/OJ/gobuster/v3@latest${NC}"
+  fi
+  draw_line "─" 66; press_enter
+}
+
+run_john() {
+  show_banner; draw_box "  JOHN THE RIPPER" 66; echo ""
+  if ! command -v john &>/dev/null; then
+    echo -e "  ${Y}[!] John not installed.${NC}"
+    echo -e "  ${C}Install: pkg install john${NC}"; press_enter; return
+  fi
+  echo -e "  ${W}Mode:${NC}"
+  echo -e "  ${DC}[1]${NC} Crack hash file (wordlist attack)"
+  echo -e "  ${DC}[2]${NC} Crack hash file (incremental)"
+  echo -e "  ${DC}[3]${NC} Show cracked passwords"
+  echo -ne "
+  ${M}▶${NC} "; read -r m
+  echo -ne "  ${C}Hash file path:${NC} "; read -r hfile
+  echo ""; draw_line "─" 66
+  case "$m" in
+    1) echo -ne "  ${C}Wordlist [default rockyou]:${NC} "; read -r wl
+       wl="${wl:-$PHANTOMSEC_DIR/wordlists/common-passwords.txt}"
+       john --wordlist="$wl" "$hfile" 2>&1 | tee "$PHANTOMSEC_DIR/reports/john_$(date +%s).txt" ;;
+    2) john --incremental "$hfile" 2>&1 | tee "$PHANTOMSEC_DIR/reports/john_$(date +%s).txt" ;;
+    3) john --show "$hfile" 2>&1 ;;
+  esac
+  draw_line "─" 66; press_enter
+}
+
+run_masscan() {
+  show_banner; draw_box "  MASSCAN FAST PORT SCAN" 66; echo ""
+  if ! command -v masscan &>/dev/null; then
+    echo -e "  ${Y}[!] Masscan not installed.${NC}"
+    echo -e "  ${C}Install: pkg install masscan${NC}"; press_enter; return
+  fi
+  echo -e "  ${Y}[!] Masscan may require root for raw sockets on some systems.${NC}"; echo ""
+  echo -ne "  ${C}Target IP/range (e.g. 192.168.1.0/24):${NC} "; read -r target
+  echo -ne "  ${C}Port range [default 1-10000]:${NC} "; read -r ports
+  ports="${ports:-1-10000}"
+  echo -ne "  ${C}Rate (packets/sec) [default 1000]:${NC} "; read -r rate
+  rate="${rate:-1000}"
+  echo ""; draw_line "─" 66
+  masscan "$target" -p"$ports" --rate="$rate" 2>&1 | tee "$PHANTOMSEC_DIR/reports/masscan_$(date +%s).txt"
+  draw_line "─" 66; press_enter
+}
+
+run_aircrack_capture() {
+  show_banner; draw_box "  AIRCRACK — CAPTURE HANDSHAKE" 66; echo ""
+  echo -e "  ${Y}[!] Requires root and a WiFi adapter that supports monitor mode.${NC}"
+  echo -e "  ${Y}[!] Not supported on most Android devices without root.${NC}"; echo ""
+  if ! command -v aircrack-ng &>/dev/null; then
+    echo -e "  ${R}[✗] aircrack-ng not installed.${NC}"
+    echo -e "  ${C}Install: pkg install aircrack-ng${NC}"; press_enter; return
+  fi
+  echo -ne "  ${C}Interface (e.g. wlan0):${NC} "; read -r iface
+  echo -ne "  ${C}BSSID (target AP MAC):${NC} "; read -r bssid
+  echo -ne "  ${C}Channel:${NC} "; read -r ch
+  echo -ne "  ${C}Output file prefix:${NC} "; read -r outf
+  outf="${outf:-$PHANTOMSEC_DIR/reports/capture}"
+  echo ""; draw_line "─" 66
+  echo -e "  ${C}[*] Setting monitor mode on $iface ...${NC}"
+  airmon-ng start "$iface" 2>&1 | tail -3
+  echo -e "  ${C}[*] Capturing on $iface — press Ctrl+C to stop${NC}"
+  airodump-ng --bssid "$bssid" -c "$ch" -w "$outf" "${iface}mon" 2>&1
+  draw_line "─" 66; press_enter
+}
+
+run_aircrack_crack() {
+  show_banner; draw_box "  AIRCRACK — CRACK WPA HANDSHAKE" 66; echo ""
+  if ! command -v aircrack-ng &>/dev/null; then
+    echo -e "  ${R}[✗] aircrack-ng not installed. Run: pkg install aircrack-ng${NC}"; press_enter; return
+  fi
+  echo -ne "  ${C}Capture file (.cap):${NC} "; read -r capfile
+  echo -ne "  ${C}Wordlist path:${NC} "; read -r wl
+  wl="${wl:-$PHANTOMSEC_DIR/wordlists/common-passwords.txt}"
+  echo ""; draw_line "─" 66
+  aircrack-ng -w "$wl" "$capfile" 2>&1 | tee "$PHANTOMSEC_DIR/reports/aircrack_$(date +%s).txt"
+  draw_line "─" 66; press_enter
+}
+
+run_zphisher() {
+  show_banner; draw_box "  ZPHISHER — PHISHING PAGES" 66; echo ""
+  echo -e "  ${Y}[!] For authorized security awareness testing only.${NC}"; echo ""
+  local zdir="$HOME/zphisher"
+  if [ ! -d "$zdir" ]; then
+    echo -e "  ${C}[*] Cloning Zphisher...${NC}"
+    git clone https://github.com/htr-tech/zphisher.git "$zdir" 2>&1 | tail -3
+  fi
+  if [ -f "$zdir/zphisher.sh" ]; then
+    echo -e "  ${G}[✓] Launching Zphisher...${NC}"; echo ""
+    cd "$zdir" && bash zphisher.sh
+  else
+    echo -e "  ${R}[✗] Failed to set up Zphisher.${NC}"
+    echo -e "  ${C}Manual: git clone https://github.com/htr-tech/zphisher && bash zphisher/zphisher.sh${NC}"
+    press_enter
+  fi
+}
+
+run_metasploit() {
+  show_banner; draw_box "  METASPLOIT FRAMEWORK" 66; echo ""
+  if command -v msfconsole &>/dev/null; then
+    echo -e "  ${G}[✓] Metasploit found — launching msfconsole${NC}"; echo ""
+    msfconsole
+  elif [ -d "$HOME/metasploit-framework" ]; then
+    echo -e "  ${G}[✓] Found at ~/metasploit-framework${NC}"
+    cd "$HOME/metasploit-framework" && ruby msfconsole
+  else
+    echo -e "  ${Y}[!] Metasploit not installed.${NC}"; echo ""
+    echo -e "  ${W}Install on Termux:${NC}"
+    echo -e "  ${C}pkg install unstable-repo${NC}"
+    echo -e "  ${C}pkg install metasploit${NC}"
+    echo ""
+    echo -ne "  ${C}Install now? (y/N):${NC} "; read -r ans
+    if [ "$ans" = "y" ] || [ "$ans" = "Y" ]; then
+      pkg install -y unstable-repo 2>&1
+      pkg install -y metasploit 2>&1
+    fi
+    press_enter
+  fi
+}
+
+# ── 13  Social Engineering ─────────────────────────────────────────────
+menu_social() {
+  while true; do
+    show_banner; draw_box "  🎣 SOCIAL ENGINEERING" 66; echo ""
+    echo -e "  ${Y}[!] For authorized security awareness testing only.${NC}"; echo ""
+    echo -e "  ${DC}[1]${NC} ${W}Zphisher — Phishing Pages${NC}          ${DIM}(auto-clone)${NC}"
+    echo -e "  ${DC}[2]${NC} ${W}Metasploit Framework${NC}              $(tool_status msfconsole)"
+    echo -e "  ${DC}[3]${NC} ${W}SET Info${NC}                          ${DIM}(Social-Engineer Toolkit)${NC}"
+    echo -e "  ${DC}[0]${NC} Back"
+    echo -ne "
+  ${M}▶${NC} "; read -r r
+    case "$r" in
+      1) run_zphisher ;;
+      2) run_metasploit ;;
+      3) show_banner; draw_box "  SOCIAL-ENGINEER TOOLKIT" 66; echo ""
+         echo -e "  ${W}SET is a Python framework for social engineering attacks.${NC}"
+         echo -e "  ${W}Install:${NC} pip install social-engineer-toolkit"
+         echo -e "  ${W}Or:${NC}     git clone https://github.com/trustedsec/social-engineer-toolkit"
+         echo -e "            cd social-engineer-toolkit && pip install -r requirements.txt"
+         echo -e "            python setup.py"
+         press_enter ;;
+      0) return ;;
+      *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
+    esac
+  done
 }
 
 # ── Entry point ────────────────────────────────────────────────────────
