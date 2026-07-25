@@ -105,7 +105,7 @@ static double file_entropy(const char *path) {
     return shannon_entropy(buf, (size_t)n);
 }
 
-/* Try to find which process has the file open via /proc/*/fd */
+/* Try to find which process has the file open via /proc/PID/fd */
 static pid_t find_file_owner(const char *filepath, char *procname, size_t pnlen) {
     DIR *proc_dir = opendir("/proc");
     if (!proc_dir) return -1;

@@ -38,9 +38,35 @@
 #include <sys/user.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include <syscall.h>
 
 #include "../../i18n/i18n.h"
+
+/* Architecture-specific ptrace register access */
+#if defined(__aarch64__)
+#include <asm/ptrace.h>
+typedef struct user_pt_regs scdna_regs_t;
+static inline long get_syscall_nr(pid_t pid, scdna_regs_t *regs) {
+    struct iovec io = { .iov_base = regs, .iov_len = sizeof(*regs) };
+    if (ptrace(PTRACE_GETREGSET, pid, (void *)1, &io) < 0) return -1;
+    return (long)regs->regs[8]; /* aarch64: syscall number in x8 */
+}
+#elif defined(__x86_64__)
+typedef struct user_regs_struct scdna_regs_t;
+static inline long get_syscall_nr(pid_t pid, scdna_regs_t *regs) {
+    if (ptrace(PTRACE_GETREGS, pid, NULL, regs) < 0) return -1;
+    return (long)regs->orig_rax;
+}
+#elif defined(__i386__)
+typedef struct user_regs_struct scdna_regs_t;
+static inline long get_syscall_nr(pid_t pid, scdna_regs_t *regs) {
+    if (ptrace(PTRACE_GETREGS, pid, NULL, regs) < 0) return -1;
+    return (long)regs->orig_eax;
+}
+#else
+#error "Unsupported architecture for scdna"
+#endif
 
 #define SYSCALL_MAX       512
 #define DEFAULT_CAPTURE   5000   /* default syscalls to capture */
@@ -293,10 +319,9 @@ int main(int argc, char *argv[]) {
         if (WIFEXITED(status) || WIFSIGNALED(status)) break;
         if (!WIFSTOPPED(status)) continue;
 
-        struct user_regs_struct regs;
-        if (ptrace(PTRACE_GETREGS, target_pid, NULL, &regs) < 0) break;
-
-        long syscall_nr = (long)regs.orig_rax;
+        scdna_regs_t regs;
+        long syscall_nr = get_syscall_nr(target_pid, &regs);
+        if (syscall_nr < 0) break;
         if (syscall_nr < 0 || syscall_nr >= SYSCALL_MAX) continue;
 
         freq[syscall_nr]++;

@@ -30,19 +30,41 @@ else
   DOWNLOADED=0
   for URL in "${ROOTFS_URLS[@]}"; do
     log "Trying: $URL"
-    if curl -fsSL --max-time 120 --retry 3 --retry-delay 5 \
+    if curl -fsSL --max-time 300 --retry 3 --retry-delay 5 \
         -o "$ROOTFS_TAR" "$URL" 2>/dev/null; then
-      # Validate: must be at least 1 MB and start with gzip magic bytes
+      # Validate file exists and has content
       SIZE=$(wc -c < "$ROOTFS_TAR" 2>/dev/null || echo 0)
-      MAGIC=$(od -A n -t x1 -N 2 "$ROOTFS_TAR" 2>/dev/null | tr -d ' \n')
-      if [ "$SIZE" -gt 1048576 ] && [ "$MAGIC" = "1f8b" ]; then
-        ok "Downloaded $(( SIZE / 1024 / 1024 )) MB — checksum OK"
-        DOWNLOADED=1
-        break
-      else
-        warn "File invalid (size=${SIZE} magic=${MAGIC}) — trying next URL..."
+      if [ "$SIZE" -lt 1048576 ]; then
+        warn "File too small (${SIZE} bytes) — not a valid rootfs"
         rm -f "$ROOTFS_TAR"
+        continue
       fi
+
+      # Check if file is actually HTML (redirect/error page)
+      FILE_TYPE=$(file -b "$ROOTFS_TAR" 2>/dev/null || echo "unknown")
+      if echo "$FILE_TYPE" | grep -qi "html\|text\|ascii"; then
+        warn "Downloaded file is $FILE_TYPE, not a tarball — server may be returning error page"
+        rm -f "$ROOTFS_TAR"
+        continue
+      fi
+
+      # Verify gzip integrity
+      if ! gzip -t "$ROOTFS_TAR" 2>/dev/null; then
+        warn "Gzip integrity check failed — file may be corrupt"
+        rm -f "$ROOTFS_TAR"
+        continue
+      fi
+
+      # Check it's actually a tar archive
+      if ! tar -tzf "$ROOTFS_TAR" >/dev/null 2>&1 | head -1 >/dev/null; then
+        warn "Not a valid tar.gz archive"
+        rm -f "$ROOTFS_TAR"
+        continue
+      fi
+
+      ok "Downloaded $(( SIZE / 1024 / 1024 )) MB — validation OK"
+      DOWNLOADED=1
+      break
     else
       warn "Download failed from $URL — trying next..."
       rm -f "$ROOTFS_TAR"
@@ -55,10 +77,44 @@ else
   log "Extracting rootfs to $ROOTFS_DIR ..."
   mkdir -p "$ROOTFS_DIR"
 
-  if tar -xzf "$ROOTFS_TAR" -C "$ROOTFS_DIR" 2>/dev/null; then
-    ok "Rootfs extracted → $ROOTFS_DIR"
-  elif tar -xf "$ROOTFS_TAR" -C "$ROOTFS_DIR" 2>/dev/null; then
-    ok "Rootfs extracted → $ROOTFS_DIR"
+  # Try extraction with verbose error output for debugging
+  EXTRACTION_OK=0
+
+  # Method 1: gzip + tar (most compatible with Termux)
+  log "Attempting extraction (method: gzip pipe)..."
+  if gzip -dc "$ROOTFS_TAR" | tar -xf - -C "$ROOTFS_DIR" 2>&1; then
+    EXTRACTION_OK=1
+  fi
+
+  # Method 2: tar -xzf
+  if [ "$EXTRACTION_OK" -eq 0 ]; then
+    log "Attempting extraction (method: tar -xzf)..."
+    rm -rf "$ROOTFS_DIR"/*
+    if tar -xzf "$ROOTFS_TAR" -C "$ROOTFS_DIR" 2>&1; then
+      EXTRACTION_OK=1
+    fi
+  fi
+
+  # Method 3: tar -xf (auto-detect compression)
+  if [ "$EXTRACTION_OK" -eq 0 ]; then
+    log "Attempting extraction (method: tar -xf)..."
+    rm -rf "$ROOTFS_DIR"/*
+    if tar -xf "$ROOTFS_TAR" -C "$ROOTFS_DIR" 2>&1; then
+      EXTRACTION_OK=1
+    fi
+  fi
+
+  if [ "$EXTRACTION_OK" -eq 1 ]; then
+    # Verify extraction produced a valid rootfs
+    if [ -d "$ROOTFS_DIR/bin" ] && [ -d "$ROOTFS_DIR/etc" ]; then
+      ok "Rootfs extracted → $ROOTFS_DIR"
+    else
+      warn "Extraction completed but rootfs looks incomplete (missing /bin or /etc)"
+      info "Contents of $ROOTFS_DIR:"
+      ls -la "$ROOTFS_DIR" 2>/dev/null | head -20
+      rm -f "$ROOTFS_TAR"
+      err "Incomplete rootfs extraction. Run the installer again."
+    fi
   else
     rm -f "$ROOTFS_TAR"
     err "Extraction failed — archive corrupt or unsupported format.\nDeleted: $ROOTFS_TAR\nRun the installer again to re-download."
