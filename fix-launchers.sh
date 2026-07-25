@@ -9,7 +9,7 @@ log() { echo -e "${G}[+]${NC} $*"; }
 
 ROOTFS_DIR="${PHANTOMSEC_ROOTFS:-$HOME/.phantomsec-rootfs}"
 LOCAL_BIN="$HOME/.local/bin"
-PROOT_BIN="$LOCAL_BIN/proot"
+PROOT_BIN="$LOCAL_BIN/phantom-proot"
 TOOL_PATH="/usr/local/bin"
 
 mkdir -p "$LOCAL_BIN"

@@ -51,7 +51,7 @@ phantom-proot/
 ```bash
 cd os/tools/proot
 make
-make install   # installs to ~/.local/bin/proot
+make install   # installs to ~/.local/bin/phantom-proot
 ```
 
 ### On Linux (x86-64)
@@ -82,12 +82,12 @@ phantom-proot -r <rootfs> [-b <host>:<guest> ...] [-w <cwd>] -- <cmd> [args...]
 
 ### Minimal example
 ```bash
-proot -r ~/phantomsec-rootfs -- /bin/bash
+phantom-proot -r ~/phantomsec-rootfs -- /bin/bash
 ```
 
 ### Recommended Termux setup (with /proc /dev /sys)
 ```bash
-proot \
+phantom-proot \
   -r ~/phantomsec-rootfs \
   -b /proc:/proc         \
   -b /dev:/dev           \
@@ -133,7 +133,7 @@ The installer can build it from source and use it to boot the PhantomSec rootfs:
 make -C os/tools/proot install
 
 # Then launch
-proot -r ~/.phantomsec-rootfs \
+phantom-proot -r ~/.phantomsec-rootfs \
       -b /proc:/proc -b /dev:/dev -b /sys:/sys \
       -- /bin/bash --login
 ```

@@ -24,7 +24,7 @@ RAW_URL="https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-o
 INSTALL_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec-os}"
 ROOTFS_DIR="${PHANTOMSEC_ROOTFS:-$HOME/.phantomsec-rootfs}"
 LOCAL_BIN="$HOME/.local/bin"
-PROOT_BIN="$LOCAL_BIN/proot"
+PROOT_BIN="$LOCAL_BIN/phantom-proot"
 TOOLS_SRC="$INSTALL_DIR/os"
 
 # ── Helpers ─────────────────────────────────────────────────────────────────

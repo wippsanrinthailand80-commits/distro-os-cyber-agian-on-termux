@@ -19,7 +19,7 @@ ifeq ($(LANG),th)
 endif
 
 PREFIX  ?= $(HOME)/.local/bin
-TARGET   = proot
+TARGET   = phantom-proot
 
 SRC = src/main.c \
       src/arch.c \
