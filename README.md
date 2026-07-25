@@ -11,38 +11,36 @@
 
 ## Three Editions — Choose Yours
 
-| | 🐚 Main Toolkit | 🌀 Distro Feel | 💿 PhantomSec OS |
+| | 🌀 Distro Feel | 💿 PhantomSec OS (Linux) | 📱 PhantomSec OS (Termux) |
 |---|---|---|---|
-| **Folder** | `/` (root) | `distro-feel/` | `os/` |
-| **Language** | Bash | Bash | C / C++ |
-| **What it is** | Full shell cybersecurity toolkit | Lightweight shell toolkit — distro feel without a real distro | Custom Linux OS built from scratch |
-| **Runs on** | Termux · Linux · macOS | Termux · Linux · macOS | x86-64 bare metal / VM |
-| **Install** | 1 curl command | 1 curl command | Build from source (Makefile) |
+| **Folder** | `distro-feel/` | `os/` | `termux/` |
+| **Language** | Bash | C / C++ | C / C++ |
+| **What it is** | Lightweight shell toolkit — distro feel without a real OS | Custom Linux OS built from scratch (bare metal / VM) | Real C/C++ OS tools built inside Ubuntu proot on Android |
+| **Runs on** | Termux · Linux · macOS | x86-64 Linux bare metal / VM | Termux (Android) via proot-distro |
+| **Install** | 1 curl command | 1 curl command | 1 curl command |
 
 ---
 
 ## ⚡ One-Line Install
 
-### 🐚 Main Toolkit
-```bash
-bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
-```
-
-### 🌀 Distro Feel Edition
+### 🌀 Distro Feel Edition — Termux · Linux · macOS
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/distro-feel/install.sh)
 ```
 
-### 💿 PhantomSec OS (build from source)
+### 💿 PhantomSec OS — Linux bare metal / VM (x86-64 only)
 ```bash
-git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
-cd distro-os-cyber-agian-on-termux/os
-make          # requires gcc, nasm, grub, xorriso
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/os/install.sh)
+```
+
+### 📱 PhantomSec OS on Termux — real C/C++ tools via proot-distro
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/termux/install.sh)
 ```
 
 ---
 
-## Toolkit Features (Main & Distro Feel)
+## Toolkit Features (Distro Feel)
 
 | Module | What it does |
 |--------|-------------|
@@ -56,7 +54,7 @@ make          # requires gcc, nasm, grub, xorriso
 
 ---
 
-## PhantomSec OS Tools (`os/tools/`)
+## PhantomSec OS Tools (`os/tools/` · `termux/`)
 
 | Tool | Description |
 |------|-------------|
@@ -66,7 +64,7 @@ make          # requires gcc, nasm, grub, xorriso
 | `scdna` | Binary/shellcode DNA analyzer |
 | `entropyd` | Entropy daemon for kernel randomness |
 
-→ Full details: [`os/README.md`](os/README.md)
+→ OS details: [`os/README.md`](os/README.md)
 
 ---
 
