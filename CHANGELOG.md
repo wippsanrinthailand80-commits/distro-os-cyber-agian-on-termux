@@ -1,5 +1,34 @@
 # CHANGELOG — PhantomSec OS
 
+## [1.4.2] — 2026-07-25
+
+### Fixed
+- `phantomsec.sh` version bump to v1.4.2
+- `menu_shells`: ไม่มี `while true` loop → กดอะไรก็ออกเสมอ แก้เป็น proper menu พร้อม `[0] Back`
+- `run_sqlmap`: ไม่เช็คว่า sqlmap ติดตั้งอยู่ → crash เมื่อไม่มี tool เพิ่ม `require_tool` guard
+- `run_hydra`: ไม่เช็คว่า hydra ติดตั้งอยู่ → crash เพิ่ม guard + hint ติดตั้ง
+- `tool_status`: เช็คแค่ `command -v` → ไม่พบ tool ที่ติดตั้งผ่าน pip/gem/go ใน `~/.local/bin` หรือ `~/go/bin`
+- เพิ่ม `require_tool()` helper function สำหรับทุก menu ที่ใช้ external tool
+- เพิ่ม `PATH` export ครอบ `~/.local/bin` และ `~/go/bin` ที่ startup
+- `run_hash_crack`: curl 2 calls ไม่มี `--max-time` → เพิ่ม `--max-time 10`
+- `run_wordlist_mgr`: curl download ไม่มี `--max-time` → เพิ่ม `--max-time 30/60`
+- `run_whatweb` fallback curl: เพิ่ม `--max-time 10`
+- `run_harvester` install hint: `pip` → `pip3`
+- `menu_tool_manager` [1] Check tools: เพิ่ม tool อีก 14 ตัว (theHarvester, tcpdump, traceroute, ssh, ftp, perl, ruby, figlet, lolcat, toilet, tmux, vim, jq, nc)
+- `menu_tool_manager` [3] Install: เปลี่ยนจาก bulk install เป็น per-tool graceful skip พร้อม hint แต่ละตัว
+- `install.sh`: `pip install sqlmap` → `pip3 install sqlmap`
+- `install.sh`: hydra fallback ลอง `unstable-repo` ก่อน แล้วค่อย skip พร้อม hint
+- `install.sh`: เพิ่ม theHarvester (pip3) ใน STEP 6
+- `install.sh` version: 1.4.1 → 1.4.2
+- `VERSION`: 1.4.1 → 1.4.2
+
+### Added
+- `run_revshell_gen()`: เนื้อหา payload เดิมจาก menu_shells + เพิ่ม Netcat OpenBSD + PowerShell payload
+- `run_nc_listener()`: start netcat listener พร้อม port validation และ nc check
+- `run_webshell_gen()`: PHP / Python web shell templates
+
+---
+
 ## [1.4.1] — 2026-07-24
 
 ### Fixed
