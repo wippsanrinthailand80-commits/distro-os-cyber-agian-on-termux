@@ -64,6 +64,34 @@ build_tool "spectrscan" "$TOOLS_SRC/tools/spectrscan/spectrscan.c"  "-lm"
 build_tool "entropyd"   "$TOOLS_SRC/tools/entropyd/entropyd.c"      "-lm"
 build_tool "scdna"      "$TOOLS_SRC/tools/scdna/scdna.c"            "-lm"
 build_tool "netghost"   "$TOOLS_SRC/tools/netghost/netghost.c"      ""
+build_tool "passgen"    "$TOOLS_SRC/tools/passgen/passgen.c"        ""
+build_tool "vulnscan"   "$TOOLS_SRC/tools/vulnscan/vulnscan.c"      ""
+
+# hashcheck needs OpenSSL (EVP API)
+if [ -f "$TOOLS_SRC/tools/hashcheck/hashcheck.c" ]; then
+  log "Compiling hashcheck (requires OpenSSL)..."
+  # shellcheck disable=SC2086
+  if clang $BASE_CFLAGS -o "$BIN_DEST/hashcheck" \
+      "$TOOLS_SRC/tools/hashcheck/hashcheck.c" -lssl -lcrypto; then
+    ok "hashcheck → $BIN_DEST/hashcheck"
+    cp "$BIN_DEST/hashcheck" "$LOCAL_BIN/hashcheck" && chmod +x "$LOCAL_BIN/hashcheck"
+  else
+    warn "Failed to build hashcheck — skipping (install will continue)."
+  fi
+fi
+
+# ── Install Termux shell tools (ps-*.sh) ──────────────────────────────────────
+TERMUX_TOOLS_DIR="$INSTALL_DIR/termux/tools"
+if [ -d "$TERMUX_TOOLS_DIR" ]; then
+  log "Installing Termux shell tools..."
+  for SCRIPT in "$TERMUX_TOOLS_DIR"/ps-*.sh; do
+    [ -f "$SCRIPT" ] || continue
+    TOOL_NAME="$(basename "$SCRIPT" .sh)"
+    cp "$SCRIPT" "$LOCAL_BIN/$TOOL_NAME"
+    chmod +x "$LOCAL_BIN/$TOOL_NAME"
+    ok "$TOOL_NAME → $LOCAL_BIN/$TOOL_NAME"
+  done
+fi
 
 ok "PhantomSec tools build complete."
 info "Inside rootfs : $BIN_DEST/"

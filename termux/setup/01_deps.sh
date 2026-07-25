@@ -10,10 +10,11 @@ step "Step 1 — Termux dependencies"
 log "Updating Termux package lists..."
 pkg update -y -q
 
-log "Installing: ca-certificates clang make git curl tar wget..."
+log "Installing: ca-certificates clang make git curl tar wget openssl..."
 # ca-certificates — required for git clone via HTTPS (SSL verification)
 # clang = C compiler on Termux (no gcc needed — clang builds everything)
-pkg install -y ca-certificates clang make git curl tar wget
+# openssl — required by hashcheck tool (OpenSSL EVP API)
+pkg install -y ca-certificates clang make git curl tar wget openssl
 
 # Verify git can reach GitHub via HTTPS
 log "Verifying HTTPS connectivity to GitHub..."

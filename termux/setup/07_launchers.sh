@@ -18,8 +18,23 @@ TOOL_PATH_IN_ROOTFS="/usr/local/bin"
 cat > "$LOCAL_BIN/phantomsec-os" << LAUNCHER
 #!/usr/bin/env bash
 # PhantomSec OS — enter full environment via phantom-proot
-exec "${PROOT_BIN}" \\
-  -r "${ROOTFS_DIR}" \\
+PROOT="${PROOT_BIN}"
+ROOTFS="${ROOTFS_DIR}"
+
+if [ ! -x "\$PROOT" ]; then
+  echo "[!] phantom-proot not found at \$PROOT" >&2
+  echo "    Run the installer again: bash <(curl -sL ${RAW_URL}/termux/install.sh)" >&2
+  exit 1
+fi
+
+if [ ! -d "\$ROOTFS/bin" ]; then
+  echo "[!] Rootfs not found at \$ROOTFS" >&2
+  echo "    Run the installer again to re-download." >&2
+  exit 1
+fi
+
+exec "\$PROOT" \\
+  -r "\$ROOTFS" \\
   -b /proc:/proc    \\
   -b /dev:/dev      \\
   -b /sys:/sys      \\
@@ -31,7 +46,7 @@ chmod +x "$LOCAL_BIN/phantomsec-os"
 ok "phantomsec-os → $LOCAL_BIN/phantomsec-os"
 
 # ── Per-tool launchers — use FULL PATH inside rootfs ──────────────────────────
-for TOOL in psh netghost spectrscan scdna entropyd; do
+for TOOL in psh netghost spectrscan scdna entropyd passgen hashcheck vulnscan; do
   cat > "$LOCAL_BIN/ps-${TOOL}" << TOOL_LAUNCHER
 #!/usr/bin/env bash
 # PhantomSec tool launcher — ${TOOL}
@@ -60,3 +75,8 @@ info "Run: ps-netghost         — NetGhost"
 info "Run: ps-spectrscan       — SpecterScan"
 info "Run: ps-scdna            — SyscallDNA"
 info "Run: ps-entropyd         — EntropyWarden"
+info "Run: ps-passgen          — Password Generator"
+info "Run: ps-hashcheck        — Hash Identifier"
+info "Run: ps-vulnscan         — Vulnerability Scanner"
+info "Run: ps-portscan         — Port Scanner"
+info "Run: ps-revshell         — Reverse Shell Generator"

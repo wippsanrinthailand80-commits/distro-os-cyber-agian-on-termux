@@ -14,7 +14,10 @@
 #define PP_MAX_PATH      4096
 #define PP_MAX_BINDS     64       /* max bind-mount entries   */
 #define PP_MAX_TRACEES   256      /* max simultaneous procs   */
-#define PP_SCRATCH_OFF   8192     /* bytes below SP for scratch */
+#define PP_SCRATCH_OFF   32768    /* bytes below SP for scratch (needs room for
+                                  * multiple path rewrites: argno * PP_MAX_PATH.
+                                  * renameat/linkat rewrite arg1 + arg3, so we
+                                  * need at least 4 * 4096 = 16384.  Use 32 KB. */
 
 /* ── Mount entry ────────────────────────────────────────── */
 typedef struct {
