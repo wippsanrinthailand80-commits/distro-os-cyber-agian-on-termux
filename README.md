@@ -1,11 +1,11 @@
-# PhantomSec — Distro Feel Edition v2.0
+# PhantomSec — Distro Feel Edition v2.0.1
 
 > *The cybersecurity toolkit that makes your terminal feel like a distro — without needing one.*
 
 [![Platform](https://img.shields.io/badge/platform-Termux%20%7C%20Linux%20%7C%20macOS-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
 [![Language](https://img.shields.io/badge/language-Bash-00d4ff?style=flat-square)](phantomsec.sh)
 [![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](phantomsec.sh)
-[![Version](https://img.shields.io/badge/version-2.0.0-00d4ff?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.1-00d4ff?style=flat-square)](CHANGELOG.md)
 
 ---
 
