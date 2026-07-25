@@ -8,7 +8,7 @@
 #   — ไม่มีปัญหา "Package has no installation candidate" อีกต่อไป
 
 set -euo pipefail
-source "$(dirname "$0")/_common.sh"
+source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
 step "Step 6 — Build PhantomSec tools"
 info "Compiling with Termux clang (native ARM64) — no apt-get inside proot needed."
