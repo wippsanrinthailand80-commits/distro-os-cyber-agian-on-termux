@@ -7,13 +7,18 @@ source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
 step "Step 4 — Ubuntu ARM64 rootfs"
 
-ROOTFS_TAR="${TMPDIR:-$HOME}/phantomsec-rootfs.tar.gz"
+ROOTFS_TAR="${TMPDIR:-/tmp}/phantomsec-rootfs.tar.gz"
+
+# Cleanup trap for partial downloads
+cleanup_rootfs() {
+  rm -f "$ROOTFS_TAR"
+}
+trap cleanup_rootfs EXIT
 
 # Multiple URL fallbacks — tried in order until one works
 ROOTFS_URLS=(
   "https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-arm64.tar.gz"
   "https://partner-images.canonical.com/core/jammy/current/ubuntu-jammy-core-cloudimg-arm64-root.tar.gz"
-  "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/aarch64/alpine-minirootfs-3.19.1-aarch64.tar.gz"
 )
 
 if [ -d "$ROOTFS_DIR/bin" ] && [ -d "$ROOTFS_DIR/etc" ]; then
@@ -29,7 +34,7 @@ else
         -o "$ROOTFS_TAR" "$URL" 2>/dev/null; then
       # Validate: must be at least 1 MB and start with gzip magic bytes
       SIZE=$(wc -c < "$ROOTFS_TAR" 2>/dev/null || echo 0)
-      MAGIC=$(xxd -l 2 "$ROOTFS_TAR" 2>/dev/null | awk '{print $2$3}' || echo "")
+      MAGIC=$(od -A n -t x1 -N 2 "$ROOTFS_TAR" 2>/dev/null | tr -d ' \n')
       if [ "$SIZE" -gt 1048576 ] && [ "$MAGIC" = "1f8b" ]; then
         ok "Downloaded $(( SIZE / 1024 / 1024 )) MB — checksum OK"
         DOWNLOADED=1

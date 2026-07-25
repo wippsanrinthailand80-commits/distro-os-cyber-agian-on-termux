@@ -14,7 +14,7 @@ step "Step 0 — Pre-flight checks"
 # Architecture check
 ARCH="$(uname -m)"
 case "$ARCH" in
-  aarch64) ok "Architecture: $ARCH (ARM64) ✓" ;;
+  aarch64) ok "Architecture: $ARCH (ARM64)" ;;
   x86_64)  warn "Architecture: $ARCH — ARM64 is primary; x86-64 should work too." ;;
   *)       err "Unsupported architecture: $ARCH (need aarch64 or x86_64)" ;;
 esac

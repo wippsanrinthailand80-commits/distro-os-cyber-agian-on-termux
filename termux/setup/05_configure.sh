@@ -31,11 +31,18 @@ cat > "$ROOTFS_DIR/etc/hosts" << 'HOSTS'
 ::1         localhost ip6-localhost ip6-loopback
 HOSTS
 
-# APT sources — enable main + universe + multiverse for ARM64 (ports.ubuntu.com)
-cat > "$ROOTFS_DIR/etc/apt/sources.list" << 'SOURCES'
-deb http://ports.ubuntu.com/ubuntu-ports jammy           main restricted universe multiverse
-deb http://ports.ubuntu.com/ubuntu-ports jammy-updates   main restricted universe multiverse
-deb http://ports.ubuntu.com/ubuntu-ports jammy-security  main restricted universe multiverse
+# APT sources — detect architecture for correct mirror
+ARCH="$(uname -m)"
+if [ "$ARCH" = "x86_64" ]; then
+  APT_MIRROR="http://archive.ubuntu.com/ubuntu"
+else
+  APT_MIRROR="http://ports.ubuntu.com/ubuntu-ports"
+fi
+
+cat > "$ROOTFS_DIR/etc/apt/sources.list" << SOURCES
+deb ${APT_MIRROR} jammy           main restricted universe multiverse
+deb ${APT_MIRROR} jammy-updates   main restricted universe multiverse
+deb ${APT_MIRROR} jammy-security  main restricted universe multiverse
 SOURCES
 
 # APT options: non-interactive, no recommends

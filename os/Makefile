@@ -5,7 +5,7 @@
 CC      = gcc
 CFLAGS  = -O2 -Wall -Wextra -std=c11 -D_GNU_SOURCE
 LDFLAGS = -lm
-PREFIX  = /usr/local/bin
+PREFIX  ?= /usr/local
 
 # Language selection (default: en)
 LANG ?= en
@@ -48,7 +48,7 @@ netghost:
 
 psh:
 	@echo "[+] Building psh..."
-	$(CC) $(CFLAGS) -o bin/$@ tools/psh/psh.c -lreadline $(LDFLAGS)
+	$(CC) $(CFLAGS) -o bin/$@ tools/psh/psh.c $(LDFLAGS)
 
 install: all
 	@echo "[*] Installing to $(PREFIX)..."

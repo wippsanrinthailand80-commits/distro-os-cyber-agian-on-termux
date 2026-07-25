@@ -160,8 +160,8 @@ menu_network() {
       1) bash "$SCRIPT_DIR/modules/nettools.sh" ;;
       2) T=$(prompt_target "Subnet (e.g. 192.168.1.0/24)")
          require_tool nmap && nmap -sn "$T" | grep -E "Nmap|Host is" ;;
-      3) T=$(prompt_target "Target IP/hostname")
-         require_tool nmap
+       3) T=$(prompt_target "Target IP/hostname")
+         require_tool nmap || continue
          echo -ne "  ${C}Scan type [quick/full/udp]:${NC} "; read -r stype
          case "$stype" in
            full) nmap -sV -sC -O "$T" ;;
@@ -209,17 +209,24 @@ menu_osint() {
       5) T=$(prompt_target "Domain")
          echo | openssl s_client -connect "$T:443" 2>/dev/null | \
            openssl x509 -noout -text 2>/dev/null | grep -E "Subject:|Issuer:|Not Before|Not After|DNS:" | head -20 ;;
-      6) T=$(prompt_target "IP/Domain")
-         curl -s "http://ip-api.com/json/$T" 2>/dev/null | \
-           node -e "const d=[]; process.stdin.on('data',c=>d.push(c)); process.stdin.on('end',()=>{
-             const r=JSON.parse(d.join(''));
-             Object.entries(r).forEach(([k,v])=>console.log('  '+k+': '+v));
-           })" 2>/dev/null || python3 -c "
-import sys,json,urllib.request
-r=json.load(urllib.request.urlopen('http://ip-api.com/json/$T'))
-[print(f'  {k}: {v}') for k,v in r.items()]" 2>/dev/null ;;
-      7) T=$(prompt_target "IP")
-         curl -s "https://internetdb.shodan.io/$T" 2>/dev/null | python3 -m json.tool 2>/dev/null ;;
+       6) T=$(prompt_target "IP/Domain")
+         GEOIP_RESULT=$(curl -s "http://ip-api.com/json/$T" 2>/dev/null)
+         if [ -n "$GEOIP_RESULT" ]; then
+           echo "$GEOIP_RESULT" | jq . 2>/dev/null || \
+           echo "$GEOIP_RESULT" | python3 -c "
+import sys,json
+r=json.load(sys.stdin)
+[print(f'  {k}: {v}') for k,v in r.items()]" 2>/dev/null || \
+           echo "$GEOIP_RESULT" | python -c "
+import sys,json
+r=json.load(sys.stdin)
+for k,v in r.items(): print('  %s: %s' % (k,v))" 2>/dev/null || \
+           echo "$GEOIP_RESULT" | cat
+         fi ;;
+       7) T=$(prompt_target "IP")
+         curl -s "https://internetdb.shodan.io/$T" 2>/dev/null | jq . 2>/dev/null || \
+         curl -s "https://internetdb.shodan.io/$T" 2>/dev/null | python3 -m json.tool 2>/dev/null || \
+         curl -s "https://internetdb.shodan.io/$T" 2>/dev/null ;;
       0) return ;;
       *) echo -e "${R}  $(_t INVALID)${NC}" ;;
     esac
@@ -272,10 +279,11 @@ menu_webexploit() {
   \x3cscript\x3ealert(1)\x3c/script\x3e
 XSS
          ;;
-      6) echo -ne "  ${C}Paste JWT:${NC} "; read -r jwt
-         python3 -c "
-import base64,json,sys
-parts='$jwt'.split('.')
+       6) echo -ne "  ${C}Paste JWT:${NC} "; read -r jwt
+         PHANTOMSEC_JWT="$jwt" python3 -c "
+import base64,json,sys,os
+jwt=os.environ.get('PHANTOMSEC_JWT','')
+parts=jwt.split('.')
 for i,p in enumerate(['HEADER','PAYLOAD']):
     b=p+':\\n'
     try:
@@ -338,12 +346,13 @@ menu_crypto() {
          echo -ne "  ${C}File:${NC} "; read -r f
          [ "$m" = "1" ] && openssl enc -aes-256-cbc -pbkdf2 -in "$f" -out "${f}.enc" \
                         || openssl enc -d -aes-256-cbc -pbkdf2 -in "$f" -out "${f%.enc}.dec" ;;
-      7) echo -ne "  ${C}Password:${NC} "; read -rs pw; echo ""
-         python3 -c "
+       7) echo -ne "  ${C}Password:${NC} "; read -rs pw; echo ""
+         PHANTOMSEC_PW="$pw" python3 -c "
 import crypt,hashlib,os
+pw=os.environ.get('PHANTOMSEC_PW','')
 salt=crypt.mksalt(crypt.METHOD_SHA512)
-print('  SHA512-crypt:',crypt.crypt('$pw',salt))
-print('  SHA256:     ',hashlib.sha256('$pw'.encode()).hexdigest())" 2>/dev/null ;;
+print('  SHA512-crypt:',crypt.crypt(pw,salt))
+print('  SHA256:     ',hashlib.sha256(pw.encode()).hexdigest())" 2>/dev/null ;;
       8) echo -e "\n  ${G}Random keys:${NC}"
          echo "  32-byte hex:  $(openssl rand -hex 32)"
          echo "  64-byte hex:  $(openssl rand -hex 64)"
@@ -376,10 +385,11 @@ menu_forensic() {
          require_tool exiftool && exiftool "$f" 2>/dev/null | head -30 ;;
       2) echo -ne "  ${C}File:${NC} "; read -r f
          strings "$f" 2>/dev/null | grep -v "^.$" | head -60 ;;
-      3) echo -ne "  ${C}File:${NC} "; read -r f
-         python3 -c "
-import sys,math
-data=open('$f','rb').read()[:65536]
+       3) echo -ne "  ${C}File:${NC} "; read -r f
+         PHANTOMSEC_FILE="$f" python3 -c "
+import sys,math,os
+f=os.environ.get('PHANTOMSEC_FILE','')
+data=open(f,'rb').read()[:65536]
 freq=[0]*256
 for b in data: freq[b]+=1
 n=len(data)

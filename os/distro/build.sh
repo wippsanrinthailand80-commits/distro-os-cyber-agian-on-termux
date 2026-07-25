@@ -12,7 +12,7 @@ set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────────────────────
 DISTRO_NAME="PhantomSec OS"
-DISTRO_VERSION="2.0.0"
+DISTRO_VERSION="2.5.0"
 ARCH="${ARCH:-x86_64}"
 BUILD_DIR="${BUILD_DIR:-/tmp/phantomsec-build}"
 SYSROOT="${BUILD_DIR}/sysroot"
@@ -125,7 +125,7 @@ build_kernel() {
         scripts/config --enable CONFIG_RAW_SOCKETS
         scripts/config --enable CONFIG_INOTIFY_USER
         scripts/config --enable CONFIG_PROC_FS
-        scripts/config --enable CONFIG_SYS_FS
+        scripts/config --enable CONFIG_SYSFS
         scripts/config --enable CONFIG_DEVTMPFS
         scripts/config --enable CONFIG_TMPFS
         scripts/config --enable CONFIG_EXT4_FS
@@ -154,7 +154,7 @@ build_busybox() {
     make defconfig
     # Static link with musl
     sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
-    sed -i 's|CONFIG_SYSROOT=""|CONFIG_SYSROOT="${SYSROOT}"|' .config
+    sed -i "s|CONFIG_SYSROOT=\"\"|CONFIG_SYSROOT=\"${SYSROOT}\"|" .config
 
     make -j"${NJOBS}" CC="gcc" \
         CFLAGS="--sysroot=${SYSROOT}" \
@@ -242,7 +242,7 @@ EOF
 ps_banner() {
     printf "\033[0;36m"
     echo " ╔══════════════════════════════════════╗"
-    echo " ║     PhantomSec OS v2.0.0             ║"
+    echo " ║     PhantomSec OS v2.5.0             ║"
     echo " ║     Built entirely in C/C++          ║"
     echo " ╚══════════════════════════════════════╝"
     printf "\033[0m\n"

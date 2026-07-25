@@ -38,6 +38,7 @@ for TOOL in psh netghost spectrscan scdna entropyd; do
 exec "${PROOT_BIN}" \\
   -r "${ROOTFS_DIR}" \\
   -b /proc:/proc -b /dev:/dev -b /sys:/sys \\
+  -b "\${HOME}:/root" \\
   -- ${TOOL_PATH_IN_ROOTFS}/${TOOL} "\$@"
 TOOL_LAUNCHER
   chmod +x "$LOCAL_BIN/ps-${TOOL}"

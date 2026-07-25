@@ -15,8 +15,8 @@ err()  { echo -e "${R}[✗]${NC} $*"; exit 1; }
 ok()   { echo -e "${G}[✓]${NC} $*"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PREFIX="${PREFIX:-/usr/local}"
-LANG="${PHANTOMSEC_LANG:-en}"
+PREFIX="${PREFIX:-/usr/local/bin}"
+PS_LANG="${PHANTOMSEC_LANG:-en}"
 
 echo ""
 echo -e "${C}${BOLD}  PhantomSec OS v2.0.1${NC}"
@@ -63,7 +63,7 @@ ok "Dependencies satisfied."
 log "Building PhantomSec OS tools from source..."
 cd "$SCRIPT_DIR"
 
-make LANG="$LANG" all 2>&1 | sed 's/^/  /' || err "Build failed. Check output above."
+make LANG="$PS_LANG" all 2>&1 | sed 's/^/  /' || err "Build failed. Check output above."
 ok "Build complete."
 
 # ── Install binaries ─────────────────────────────────────────────────────────

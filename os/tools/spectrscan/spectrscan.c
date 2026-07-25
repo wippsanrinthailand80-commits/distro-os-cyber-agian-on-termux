@@ -45,7 +45,7 @@
 #define PROBE_TIMEOUT  500000   /* 500ms in microseconds */
 #define TIMING_SAMPLES 3        /* probes per port for timing accuracy */
 #define SHAPED_THRESH  150000   /* 150ms consistent delay = policer */
-#define VERSION        "2.0.0"
+#define VERSION        "2.5.0"
 
 /* Firewall behavior classification */
 typedef enum {
@@ -374,7 +374,7 @@ int main(int argc, char *argv[]) {
     g_port_count = port_count;
 
     PS_INFO("%s %s:%d-%d", SS_ANALYZING, target_ip_str, port_start, port_end);
-    PS_INFO("%s: %u | %s", I18N_TARGET, ntohs(dst_addr.s_addr), I18N_PRESS_CTRL_C);
+    PS_INFO("%s: %s | %s", I18N_TARGET, inet_ntoa(dst_addr), I18N_PRESS_CTRL_C);
     printf("\n");
 
     uint64_t t_global_start = now_ns();

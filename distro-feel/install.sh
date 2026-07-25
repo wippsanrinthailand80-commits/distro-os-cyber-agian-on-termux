@@ -78,7 +78,7 @@ chmod +x "$BIN_DIR/phantomsec"
 # ── Add to PATH ──────────────────────────────────────────────────────────────
 for RC in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
   [ -f "$RC" ] || continue
-  grep -q 'phantomsec' "$RC" && continue
+  grep -q '\.local/bin' "$RC" && continue
   echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$RC"
 done
 
