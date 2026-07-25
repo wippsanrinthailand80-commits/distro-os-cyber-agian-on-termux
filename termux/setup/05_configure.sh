@@ -7,8 +7,13 @@ source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
 step "Step 5 — Configure rootfs"
 
-# Essential mount-point directories
-mkdir -p "$ROOTFS_DIR"/{proc,dev,sys,tmp,run,root}
+# Sanity check — rootfs must exist after step 4
+[ -d "$ROOTFS_DIR/bin" ] || err "Rootfs not found at $ROOTFS_DIR\nDid step 4 (rootfs download) succeed?"
+
+# Essential mount-point directories (list form avoids brace-expansion quoting pitfalls)
+for d in proc dev sys tmp run root; do
+  mkdir -p "$ROOTFS_DIR/$d"
+done
 
 # DNS
 cat > "$ROOTFS_DIR/etc/resolv.conf" << 'DNS'
@@ -27,7 +32,6 @@ cat > "$ROOTFS_DIR/etc/hosts" << 'HOSTS'
 HOSTS
 
 # APT sources — enable main + universe + multiverse for ARM64 (ports.ubuntu.com)
-# The minimal cloudimg ships only "main restricted" — gcc/clang live in universe
 cat > "$ROOTFS_DIR/etc/apt/sources.list" << 'SOURCES'
 deb http://ports.ubuntu.com/ubuntu-ports jammy           main restricted universe multiverse
 deb http://ports.ubuntu.com/ubuntu-ports jammy-updates   main restricted universe multiverse
