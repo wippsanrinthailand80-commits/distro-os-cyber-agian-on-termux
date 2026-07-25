@@ -19,16 +19,20 @@ case "$ARCH" in
   *)       err "Unsupported architecture: $ARCH (need aarch64 or x86_64)" ;;
 esac
 
-# Android API level (ptrace needs API >= 28 with PTRACE_TRACEME allowed)
-API=$(getprop ro.build.version.sdk 2>/dev/null || echo 0)
-if [ "$API" -lt 28 ]; then
-  warn "Android API $API detected. phantom-proot works best on API 28+."
+# Android API level (optional — getprop may not exist everywhere)
+if command -v getprop &>/dev/null; then
+  API=$(getprop ro.build.version.sdk 2>/dev/null || echo 0)
+  if [ "$API" -lt 28 ]; then
+    warn "Android API $API detected. phantom-proot works best on API 28+."
+  else
+    info "Android API: $API ✓"
+  fi
 fi
 
-# Enough free space? (need ~500 MB: rootfs ~200 MB + tools)
-FREE_KB=$(df -k "$HOME" 2>/dev/null | awk 'NR==2 {print $4}')
-if [ -n "$FREE_KB" ] && [ "$FREE_KB" -lt 524288 ]; then
-  warn "Low disk space: ${FREE_KB} KB free. Need at least 512 MB."
+# Enough free space? (~500 MB needed)
+FREE_KB=$(df -k "$HOME" 2>/dev/null | awk 'NR==2 {print $4}' || echo 999999)
+if [ "$FREE_KB" -lt 524288 ]; then
+  warn "Low disk space: ${FREE_KB} KB free. Recommend at least 512 MB."
 fi
 
 ok "Pre-flight checks passed."
