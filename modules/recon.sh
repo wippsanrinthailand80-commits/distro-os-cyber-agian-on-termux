@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # PhantomSec — Recon Module (standalone)
 # Usage: bash recon.sh <target>
 

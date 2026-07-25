@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # PhantomSec — OSINT Module (standalone)
 # Usage: bash osint.sh <target>
 # target = email | domain | username | IP
@@ -16,7 +16,11 @@ echo -e "${M}[PhantomSec OSINT] Target: ${C}${TARGET}${NC}"
 echo "─────────────────────────────────────────────────────"
 
 # ── ตรวจจับประเภท target ──────────────────────────────────────────────
-is_ip()    { [[ "$TARGET" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; }
+is_ip() {
+  [[ "$TARGET" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] &&
+  [[ ${BASH_REMATCH[1]} -le 255 && ${BASH_REMATCH[2]} -le 255 &&
+     ${BASH_REMATCH[3]} -le 255 && ${BASH_REMATCH[4]} -le 255 ]]
+}
 is_email() { [[ "$TARGET" =~ ^[^@]+@[^@]+\.[^@]+$ ]]; }
 is_domain(){ [[ "$TARGET" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]+\.[a-zA-Z]{2,}$ ]] && ! is_ip && ! is_email; }
 
@@ -119,21 +123,39 @@ try:
 except: print('  (error)')
 " 2>/dev/null
 
-  echo -e "\n${G}[+] HaveIBeenPwned (requires API key for full results)${NC}"
-  local hibp
-  hibp=$(curl -s --max-time 10 -H "User-Agent: PhantomSec/1.3" \
-    "https://haveibeenpwned.com/api/v3/breachedaccount/${TARGET}?truncateResponse=false" 2>/dev/null)
-  if echo "$hibp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d))" 2>/dev/null | grep -q "^[1-9]"; then
-    echo -e "  ${R}[!] Found in breaches:${NC}"
-    echo "$hibp" | python3 -c "
+  echo -e "\n${G}[+] HaveIBeenPwned${NC}"
+  local hibp_key="${HIBP_API_KEY:-${PHANTOMSEC_HIBP_KEY:-}}"
+  if [ -z "$hibp_key" ]; then
+    echo -e "  ${Y}[!] HIBP API v3 requires a key (free at haveibeenpwned.com/API/Key).${NC}"
+    echo -e "  ${DIM}    Set env var HIBP_API_KEY and rerun to enable breach lookup.${NC}"
+  else
+    local hibp
+    hibp=$(curl -s --max-time 10 \
+      -H "User-Agent: PhantomSec/1.4.2" \
+      -H "hibp-api-key: $hibp_key" \
+      "https://haveibeenpwned.com/api/v3/breachedaccount/${TARGET}?truncateResponse=false" \
+      2>/dev/null)
+    local http_status
+    http_status=$(echo "$hibp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(type(d).__name__)" 2>/dev/null)
+    if echo "$hibp" | python3 -c "
+import sys,json
+try:
+  d=json.load(sys.stdin)
+  if isinstance(d,list) and len(d)>0: sys.exit(0)
+  sys.exit(1)
+except: sys.exit(1)
+" 2>/dev/null; then
+      echo -e "  ${R}[!] Found in breaches:${NC}"
+      echo "$hibp" | python3 -c "
 import sys,json
 try:
   for b in json.load(sys.stdin)[:10]:
     print(f'  • {b.get(\"Name\",\"?\")} ({b.get(\"BreachDate\",\"?\")})')
 except: pass
 " 2>/dev/null
-  else
-    echo -e "  ${Y}[!] API key required for HIBP — visit hibp.com/api${NC}"
+    else
+      echo -e "  ${G}[✓] No breaches found (or response not a breach list).${NC}"
+    fi
   fi
 }
 

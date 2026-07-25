@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # PhantomSec — Network Tools Module (standalone)
 # Usage: bash nettools.sh [subnet|host]
 

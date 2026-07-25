@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # PhantomSec — Privilege Escalation Recon Module (standalone)
 # Usage: bash privesc.sh
 #
@@ -37,11 +37,12 @@ echo -e "  ${DIM}(truncated to top 20, maxdepth=8, excluding /proc /sys /dev /ap
 
 # ── 4. World-writable directories ─────────────────────────────────────
 echo -e "\n${G}[+] World-Writable Directories${NC}"
-timeout 60 find / -maxdepth 5 -type d -perm -o+w \
-  ! -path "/proc/*" ! -path "/sys/*" ! -path "/dev/*" \
-  2>/dev/null | head -10 | while read -r d; do
+timeout 60 find / -maxdepth 8 -type d -perm -o+w \
+  ! -path "/proc/*" ! -path "/sys/*" ! -path "/dev/*" ! -path "/apex/*" \
+  2>/dev/null | head -20 | while read -r d; do
   echo -e "  ${Y}$d${NC}"
 done
+echo -e "  ${DIM}(truncated to top 20, maxdepth=8, excluding /proc /sys /dev /apex)${NC}"
 
 # ── 5. Interesting environment variables ──────────────────────────────
 echo -e "\n${G}[+] Environment Variables (filtered)${NC}"
@@ -62,7 +63,9 @@ ss -tuln 2>/dev/null | grep LISTEN | awk '{print "  "$1"\t"$5}' | head -15 \
 # ── 8. Interesting files ──────────────────────────────────────────────
 echo -e "\n${G}[+] Interesting Files${NC}"
 for f in /etc/passwd /etc/shadow /etc/sudoers ~/.ssh/id_rsa ~/.bash_history ~/.zsh_history; do
-  if [ -r "$f" ]; then
+  if [ -w "$f" ]; then
+    echo -e "  ${R}[WRITABLE]${NC} $f  ${R}⚠ HIGH RISK${NC}"
+  elif [ -r "$f" ]; then
     echo -e "  ${G}[READABLE]${NC}  $f"
   elif [ -e "$f" ]; then
     echo -e "  ${Y}[EXISTS]  ${NC}  $f (not readable)"

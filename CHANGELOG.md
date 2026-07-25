@@ -5,6 +5,23 @@ Format: `[version] — date` → sections: Added / Fixed / Changed / Removed
 
 ---
 
+## [1.4.3] — 2026-07-25
+
+### Fixed (Dead Code & Bugs)
+- `phantomsec.sh` `menu_tool_manager` [1] TOOL STATUS: duplicate `show_banner; draw_box` call removed (was rendered twice, wasted one clear)
+- `phantomsec.sh` `run_hydra`: service index off-by-one — input `0` resolved to `${services[-1]}` (last element in bash); now validates `si` is in range 1–8, defaults to `ssh` on invalid input
+- `phantomsec.sh` `run_hash_crack`: md5decrypt.net fallback used hardcoded placeholder credentials (`check@email.com / code1`) that are never valid → dead API call removed; now requires `PHANTOMSEC_MD5D_EMAIL` + `PHANTOMSEC_MD5D_CODE` env vars (shows hint if unset)
+- `phantomsec.sh` `run_revshell_gen`: mkfifo payload used fixed path `/tmp/f` (symlink collision / race condition) → replaced with `mktemp -u /tmp/.XXXXXX` randomised temp path
+- `phantomsec.sh` `run_zphisher`: `cd "$zdir" && bash zphisher.sh` changed global working directory of parent shell → wrapped in subshell `(cd "$zdir" && bash zphisher.sh)`
+- `phantomsec.sh` `run_honeypot_tcp`: `while true` loop required `Ctrl+C` to stop which killed the entire PhantomSec process → added `trap '_hp_running=0' INT` so pressing `Ctrl+C` stops only the honeypot loop cleanly and restores the trap
+- `modules/osint.sh` `is_ip()`: IP regex `[0-9]{1,3}` allowed invalid octets (e.g. `999.0.0.1`) → now validates each octet ≤ 255 via `BASH_REMATCH`
+- `modules/osint.sh` `osint_email` HIBP: API v3 requires `hibp-api-key` header — calls without it always return 401, making the breach check non-functional → now checks for `HIBP_API_KEY` / `PHANTOMSEC_HIBP_KEY` env var first; shows actionable hint if unset instead of silently failing
+- `modules/privesc.sh`: world-writable directory search used `maxdepth=5` (too shallow, missed `/var/tmp`, `/dev/shm`, nested paths) → increased to `maxdepth=8`; added truncation note consistent with SUID search
+- `modules/privesc.sh`: interesting files check only tested readability of `/etc/shadow`, `/etc/sudoers` etc. — missed the higher-severity case of *writable* → added `[ -w "$f" ]` check with `[WRITABLE] ⚠ HIGH RISK` label
+- `modules/osint.sh`, `modules/privesc.sh`, `modules/recon.sh`, `modules/nettools.sh`, `modules/webexploit.sh`: hardcoded Termux-specific shebang `#!/data/data/com.termux/files/usr/bin/bash` replaced with portable `#!/usr/bin/env bash`
+
+---
+
 ## [1.4.2] — 2026-07-25
 
 ### Fixed

