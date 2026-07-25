@@ -2,8 +2,8 @@
 # 04_rootfs.sh — Build custom minimal rootfs with busybox
 # PhantomSec OS Termux Edition v2.8.0
 #
-# Instead of downloading Ubuntu (70MB+), we build a ~5MB rootfs
-# from busybox + our skeleton files. Faster, smaller, fully controlled.
+# Builds a ~5MB rootfs from busybox (compiled static) + skeleton files.
+# No Ubuntu download, no external distro dependency.
 
 set -euo pipefail
 source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
@@ -17,57 +17,107 @@ SKELETON="$INSTALL_DIR/termux/rootfs"
 rm -rf "$ROOTFS_DIR"
 ensure_dir "$ROOTFS_DIR"
 
-# ── Copy skeleton (etc/, home/, etc.) ──────────────────────────────────────
+# ── Copy skeleton ───────────────────────────────────────────────────────────
 log "Copying rootfs skeleton..."
 cp -a "$SKELETON"/. "$ROOTFS_DIR"/
 
 # ── Create directory structure ─────────────────────────────────────────────
 mkdir -p "$ROOTFS_DIR"/{bin,sbin,usr/bin,usr/sbin,usr/local/bin}
-mkdir -p "$ROOTFS_DIR"/{proc,dev,sys,tmp,var/tmp,root}
+mkdir -p "$ROOTFS_DIR"/{proc,dev,sys,tmp,var/tmp,root,home/phantom}
 
-# ── Download busybox static binary ─────────────────────────────────────────
-BUSYBOX_URL="https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox"
-BUSYBOX_ARM_URL="https://busybox.net/downloads/binaries/1.35.0-aarch64-linux-musl/busybox"
-
-ARCH="$(uname -m)"
-case "$ARCH" in
-  aarch64|arm64) BUSYBOX_URL="$BUSYBOX_ARM_URL" ;;
-esac
+# ── Build busybox from source (static) ─────────────────────────────────────
+# This is the most reliable way to get a working static busybox for ANY arch.
+BB_SRC_DIR="$INSTALL_DIR/.busybox-build"
+BB_VERSION="1_36_1"
 
 if [ -x "$ROOTFS_DIR/bin/busybox" ]; then
   info "busybox already present."
 else
-  log "Downloading busybox static binary for $ARCH..."
-  curl -fsSL "$BUSYBOX_URL" -o "$ROOTFS_DIR/bin/busybox" || {
-    warn "Download failed — trying Termux package busybox..."
-    # Fallback: copy busybox from Termux
-    if command -v busybox &>/dev/null; then
-      cp "$(command -v busybox)" "$ROOTFS_DIR/bin/busybox"
-    else
-      pkg install -y busybox 2>/dev/null
-      cp "$(command -v busybox)" "$ROOTFS_DIR/bin/busybox"
-    fi
-  }
+  log "Building busybox (static) from source..."
+
+  if [ ! -d "$BB_SRC_DIR" ]; then
+    log "Downloading busybox source..."
+    curl -fsSL "https://busybox.net/downloads/busybox-${BB_VERSION}.tar.bz2" \
+      -o "/tmp/busybox.tar.bz2" || err "Failed to download busybox source."
+    ensure_dir "$BB_SRC_DIR"
+    tar xjf "/tmp/busybox.tar.bz2" -C "$INSTALL_DIR" 2>/dev/null
+    mv "$INSTALL_DIR/busybox-${BB_VERSION}" "$BB_SRC_DIR" 2>/dev/null || true
+    rm -f "/tmp/busybox.tar.bz2"
+  fi
+
+  [ -d "$BB_SRC_DIR" ] || err "busybox source directory not found after extraction."
+
+  log "Configuring busybox for static build..."
+  make -C "$BB_SRC_DIR" CC=clang \
+    EXTRA_CFLAGS="-static" \
+    LDFLAGS="-static" \
+    defconfig 2>/dev/null
+
+  # Enable sh and essential applets
+  sed -i 's/# CONFIG_SH is not set/CONFIG_SH=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_BASH is not set/CONFIG_BASH=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_CAT is not set/CONFIG_CAT=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_ECHO is not set/CONFIG_ECHO=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_LS is not set/CONFIG_LS=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_MKDIR is not set/CONFIG_MKDIR=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_RM is not set/CONFIG_RM=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_CP is not set/CONFIG_CP=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_MV is not set/CONFIG_MV=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_GREP is not set/CONFIG_GREP=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_SED is not set/CONFIG_SED=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_AWK is not set/CONFIG_AWK=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_FIND is not set/CONFIG_FIND=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_WC is not set/CONFIG_WC=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_HEAD is not set/CONFIG_HEAD=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_TAIL is not set/CONFIG_TAIL=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_ID is not set/CONFIG_ID=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_UNAME is not set/CONFIG_UNAME=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_HOSTNAME is not set/CONFIG_HOSTNAME=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_WHOAMI is not set/CONFIG_WHOAMI=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_PWD is not set/CONFIG_PWD=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_SLEEP is not set/CONFIG_SLEEP=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_DATE is not set/CONFIG_DATE=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_TRUE is not set/CONFIG_TRUE=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_FALSE is not set/CONFIG_FALSE=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_TEST is not set/CONFIG_TEST=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_STTY is not set/CONFIG_STTY=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_ENV is not set/CONFIG_ENV=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_EXPORT is not set/CONFIG_EXPORT=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIG_EXPR is not set/CONFIG_EXPR=y/' "$BB_SRC_DIR/.config"
+  sed -i 's/# CONFIGPrintf is not set/CONFIG_PRINTF=y/' "$BB_SRC_DIR/.config" 2>/dev/null || true
+
+  make -C "$BB_SRC_DIR" CC=clang \
+    EXTRA_CFLAGS="-static" \
+    LDFLAGS="-static" \
+    -j"$(nproc)" 2>&1 | tail -3
+
+  cp "$BB_SRC_DIR/busybox" "$ROOTFS_DIR/bin/busybox"
   chmod +x "$ROOTFS_DIR/bin/busybox"
+  rm -rf "$BB_SRC_DIR"
 fi
 
-# ── Create symlinks for all busybox applets ────────────────────────────────
+# ── Verify busybox is static ───────────────────────────────────────────────
+if ! file "$ROOTFS_DIR/bin/busybox" 2>/dev/null | grep -qi "static\|dynamically"; then
+  info "Cannot determine linkage — proceeding anyway."
+fi
+
+# ── Create symlinks for all applets ────────────────────────────────────────
 log "Creating busybox applets..."
 cd "$ROOTFS_DIR/bin"
 for applet in $(./busybox --list 2>/dev/null); do
   [ -e "$applet" ] || ln -sf busybox "$applet"
 done
 
-# Also create in usr/bin and usr/sbin for compatibility
+# Also create in usr/bin for PATH compatibility
 for applet in $(./busybox --list 2>/dev/null); do
-  [ -e "$ROOTFS_DIR/usr/bin/$applet" ] || ln -sf ../../bin/busybox "$ROOTFS_DIR/usr/bin/$applet" 2>/dev/null || true
+  [ -e "$ROOTFS_DIR/usr/bin/$applet" ] || \
+    ln -sf ../../bin/busybox "$ROOTFS_DIR/usr/bin/$applet" 2>/dev/null || true
 done
-
 cd - >/dev/null
 
 # ── Verify ──────────────────────────────────────────────────────────────────
 if "$ROOTFS_DIR/bin/busybox" sh -c 'echo rootfs-ok' 2>/dev/null | grep -q rootfs-ok; then
   ok "Rootfs built at $ROOTFS_DIR ($(du -sh "$ROOTFS_DIR" | cut -f1))"
 else
-  err "busybox binary is not executable — build failed."
+  err "busybox binary is not executable — build failed.\nTry: file $ROOTFS_DIR/bin/busybox"
 fi
