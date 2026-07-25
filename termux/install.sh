@@ -46,7 +46,7 @@ echo -e "${DIM}  phantom-proot: built from scratch in C | no root | no proot-dis
 # We MUST download everything to real files before running —
 # bash <(curl ...) sets $0 to /proc/self/fd/N so dirname is useless in sub-scripts.
 
-SETUP_TMP="$(mktemp -d /tmp/phantomsec-setup.XXXXXX)"
+SETUP_TMP="$(mktemp -d "${TMPDIR:-/tmp}/phantomsec-setup.XXXXXX")"
 trap 'rm -rf "$SETUP_TMP"' EXIT
 
 # Detect if we are running from a real cloned repo (not a pipe)
