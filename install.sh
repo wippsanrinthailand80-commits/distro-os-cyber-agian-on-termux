@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║           PhantomSec OS — Termux Cybersecurity Distro               ║
-# ║                    Installer v1.4.1                                  ║
+# ║                    Installer v1.4.2                                  ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 R='\033[0;31m'  G='\033[0;32m'  Y='\033[1;33m'
@@ -10,7 +10,7 @@ BOLD='\033[1m'  DIM='\033[2m'   NC='\033[0m'
 
 PHANTOMSEC_DIR="$HOME/.phantomsec"
 PHANTOMSEC_BIN="$PREFIX/bin/phantomsec"
-VERSION="1.4.1"
+VERSION="1.4.2"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ── ตัวแปรติดตามสถานะ ─────────────────────────────────────────────────
@@ -186,12 +186,12 @@ step "Fallback installs"
 # sqlmap → pip
 if ! command -v sqlmap &>/dev/null; then
   info "sqlmap: ลอง pip..."
-  if pip install sqlmap --quiet --no-deps 2>/dev/null; then
-    echo -e "  ${G}[✓]${NC} sqlmap ${DIM}(via pip)${NC}"
-    FALLBACK+=("sqlmap(pip)")
+  if pip3 install sqlmap --quiet 2>/dev/null; then
+    echo -e "  ${G}[✓]${NC} sqlmap ${DIM}(via pip3)${NC}"
+    FALLBACK+=("sqlmap(pip3)")
   else
     warn "sqlmap ไม่สามารถติดตั้งอัตโนมัติได้"
-    warn "  → รัน: pip install sqlmap"
+    warn "  → รัน: pip3 install sqlmap"
     SKIPPED+=("sqlmap")
   fi
 else
@@ -213,13 +213,33 @@ else
   echo -e "  ${G}[✓]${NC} lolcat พร้อมแล้ว"
 fi
 
-# hydra
+# hydra — unstable-repo required on newer Termux
 if ! command -v hydra &>/dev/null; then
-  warn "hydra ยังไม่ถูกติดตั้ง"
-  warn "  → รัน: pkg install hydra"
-  SKIPPED+=("hydra")
+  info "hydra: ลอง unstable-repo..."
+  if pkg install -y unstable-repo >/dev/null 2>&1 && pkg install -y hydra >/dev/null 2>&1; then
+    echo -e "  ${G}[✓]${NC} hydra ${DIM}(via unstable-repo)${NC}"
+    FALLBACK+=("hydra(unstable)")
+  else
+    warn "hydra ไม่สามารถติดตั้งได้อัตโนมัติ"
+    warn "  → ลองรัน: pkg install unstable-repo && pkg install hydra"
+    SKIPPED+=("hydra")
+  fi
 else
   echo -e "  ${G}[✓]${NC} hydra พร้อมแล้ว"
+fi
+
+# theHarvester → pip3
+if ! command -v theHarvester &>/dev/null && [ ! -f "$HOME/.local/bin/theHarvester" ]; then
+  info "theHarvester: ลอง pip3..."
+  if pip3 install theHarvester --quiet 2>/dev/null; then
+    echo -e "  ${G}[✓]${NC} theHarvester ${DIM}(via pip3)${NC}"
+    FALLBACK+=("theHarvester(pip3)")
+  else
+    warn "theHarvester ข้ามไป"
+    SKIPPED+=("theHarvester")
+  fi
+else
+  echo -e "  ${G}[✓]${NC} theHarvester พร้อมแล้ว"
 fi
 
 # ══════════════════════════════════════════════════════════════════════
