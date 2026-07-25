@@ -12,19 +12,23 @@ mkdir -p "$LOCAL_BIN"
 
 PROOT_SRC="$INSTALL_DIR/os/tools/proot"
 
-log "Cleaning previous build..."
+# Sanity check — source must exist after clone
+[ -d "$PROOT_SRC" ] || err "proot source not found at $PROOT_SRC\nDid step 2 (clone) succeed?"
+
+log "Cleaning previous build artifacts..."
 make -C "$PROOT_SRC" clean 2>/dev/null || true
 
-log "Compiling with Termux clang..."
-# Use clang (Termux native compiler) — no kernel headers needed
-make -C "$PROOT_SRC" CC=clang PREFIX="$LOCAL_BIN"
+log "Compiling phantom-proot with Termux clang..."
+# Always pass CC=clang — Termux ships clang, not gcc
+make -C "$PROOT_SRC" CC=clang
 
 log "Installing phantom-proot → $PROOT_BIN"
-make -C "$PROOT_SRC" install PREFIX="$LOCAL_BIN"
+# Pass CC=clang on install too so make doesn't try to rebuild with gcc
+make -C "$PROOT_SRC" CC=clang PREFIX="$LOCAL_BIN" install
 
-# Quick smoke test
-if "$PROOT_BIN" -h 2>&1 | grep -q "phantom-proot"; then
-  ok "phantom-proot installed and working → $PROOT_BIN"
-else
+# Verify binary exists and is executable
+if [ -x "$PROOT_BIN" ]; then
   ok "phantom-proot installed → $PROOT_BIN"
+else
+  err "phantom-proot binary not found at $PROOT_BIN after install"
 fi
