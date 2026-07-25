@@ -3,7 +3,7 @@
 # PhantomSec phantom-proot installer — Step 3
 
 set -euo pipefail
-source "$(dirname "$0")/_common.sh"
+source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
 step "Step 3 — Build phantom-proot"
 info "Building PhantomSec's own proot from C source — no third-party proot used."
