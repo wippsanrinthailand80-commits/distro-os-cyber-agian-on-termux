@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # PhantomSec Termux — Password Generator
 # Usage: ps-passgen [length] [count] [charset]
 

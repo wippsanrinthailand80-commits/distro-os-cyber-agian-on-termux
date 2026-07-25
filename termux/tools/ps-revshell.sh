@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # PhantomSec Termux — Reverse Shell Generator
 # Usage: ps-revshell [lhost] [lport]
 
