@@ -45,7 +45,7 @@
 #define PROBE_TIMEOUT  500000   /* 500ms in microseconds */
 #define TIMING_SAMPLES 3        /* probes per port for timing accuracy */
 #define SHAPED_THRESH  150000   /* 150ms consistent delay = policer */
-#define VERSION        "2.5.0"
+#define VERSION        "2.5.2"
 
 /* Firewall behavior classification */
 typedef enum {

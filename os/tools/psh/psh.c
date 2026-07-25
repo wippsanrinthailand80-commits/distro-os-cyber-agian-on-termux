@@ -36,7 +36,7 @@
 
 #include "../../i18n/i18n.h"
 
-#define PSH_VERSION      "2.5.0"
+#define PSH_VERSION      "2.5.2"
 #define PSH_MAX_LINE     4096
 #define PSH_MAX_ARGS     256
 #define PSH_MAX_HISTORY  1000

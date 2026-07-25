@@ -41,7 +41,7 @@ all: $(TARGET)
 	@echo "  ██║     ██║  ██║╚██████╔╝╚██████╔╝   ██║   "
 	@echo "  ╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝   "
 	@echo ""
-	@echo "  phantom-proot v2.5.0 — built successfully"
+	@echo "  phantom-proot v2.5.2 — built successfully"
 	@echo "  Run: ./$(TARGET) -r <rootfs> -- /bin/bash"
 	@echo ""
 

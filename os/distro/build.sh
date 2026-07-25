@@ -12,7 +12,7 @@ set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────────────────────
 DISTRO_NAME="PhantomSec OS"
-DISTRO_VERSION="2.5.0"
+DISTRO_VERSION="2.5.2"
 ARCH="${ARCH:-x86_64}"
 BUILD_DIR="${BUILD_DIR:-/tmp/phantomsec-build}"
 SYSROOT="${BUILD_DIR}/sysroot"
@@ -242,7 +242,7 @@ EOF
 ps_banner() {
     printf "\033[0;36m"
     echo " ╔══════════════════════════════════════╗"
-    echo " ║     PhantomSec OS v2.5.0             ║"
+    echo " ║     PhantomSec OS v2.5.2             ║"
     echo " ║     Built entirely in C/C++          ║"
     echo " ╚══════════════════════════════════════╝"
     printf "\033[0m\n"

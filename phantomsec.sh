@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec — Distro Feel Edition  v2.5.0                         ║
+# ║          PhantomSec — Distro Feel Edition  v2.5.2                         ║
 # ║          รองรับ Termux (Android) | macOS | Linux                        ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 # GitHub: https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
