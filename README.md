@@ -1,205 +1,105 @@
-# PhantomSec OS v2.0
+# PhantomSec — Distro Feel Edition v2.0
 
-> *A custom Linux distribution engineered from scratch in C/C++ for elite offensive and defensive security work.*
+> *The cybersecurity toolkit that makes your terminal feel like a distro — without needing one.*
 
-[![Language](https://img.shields.io/badge/language-C%2FC%2B%2B-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
-[![License](https://img.shields.io/badge/license-MIT-00d4ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.0--alpha-00d4ff?style=flat-square)](CHANGELOG.md)
-[![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](i18n/)
-
----
-
-PhantomSec OS is not a reskin of Kali Linux. It is not a pretty wrapper around existing tools. It is an **original Linux distribution built entirely in C/C++** — custom kernel configuration, custom init-style system, and five original security tools that nobody has published before.
-
-**รุ่นใหม่ทั้งหมดเขียนด้วย C/C++ — ไม่ใช่ wrapper ของ Kali หรือ distro อื่น**
+[![Platform](https://img.shields.io/badge/platform-Termux%20%7C%20Linux%20%7C%20macOS-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
+[![Language](https://img.shields.io/badge/language-Bash-00d4ff?style=flat-square)](phantomsec.sh)
+[![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](phantomsec.sh)
+[![Version](https://img.shields.io/badge/version-2.0.0-00d4ff?style=flat-square)](CHANGELOG.md)
 
 ---
 
-## Unique Tools
-
-| Tool | ภาษา | คำอธิบาย |
-|------|-------|-----------|
-| **SpecterScan** | C | Passive firewall ACL reconstructor via TCP timing analysis — reconstructs firewall rules without triggering IDS |
-| **EntropyWarden** | C | Real-time ransomware detector using inotify + Shannon entropy — catches encryption within milliseconds |
-| **SyscallDNA** | C | Markov-chain behavioral fingerprinter via ptrace — creates DNA signatures from syscall sequences |
-| **NetGhost** | C | Passive network topology mapper — reconstructs full network map without sending a single packet |
-| **PhantomShell (psh)** | C | Custom OS shell with bilingual (EN/TH) interface and integrated security tools |
+> Looking for the **real Linux distro**? → [phantomsec-os](https://github.com/wippsanrinthailand80-commits/phantomsec-os)
+> That repo is the full C/C++ OS built from scratch.
 
 ---
 
-## Project Structure
+## What is this?
 
-```
-phantomsec-src/
-├── tools/
-│   ├── spectrscan/     # Firewall ACL reconstructor
-│   │   └── spectrscan.c
-│   ├── entropyd/       # Ransomware entropy detector
-│   │   └── entropyd.c
-│   ├── scdna/          # Syscall DNA fingerprinter
-│   │   └── scdna.c
-│   ├── netghost/       # Passive network mapper
-│   │   └── netghost.c
-│   └── psh/            # PhantomSec shell
-│       └── psh.c
-├── i18n/
-│   ├── i18n.h          # i18n dispatcher
-│   ├── en.h            # English strings
-│   └── th.h            # Thai strings (ภาษาไทย)
-├── distro/
-│   ├── build.sh        # Full distro build script (Linux from scratch)
-│   └── kernel.config   # Hardened kernel configuration
-├── Makefile            # Master build file
-└── README.md
-```
+**Distro Feel Edition** is a shell-based cybersecurity toolkit that gives you the *feel* of a dedicated security distro — on any device, with just Bash. Works on:
+
+- 📱 **Termux** (Android) — the original home
+- 🐧 **Linux** (Debian, Ubuntu, Arch, Kali, Parrot)
+- 🍎 **macOS** (with Homebrew tools)
+
+No kernel recompile. No virtual machine. Just `bash phantomsec.sh`.
 
 ---
 
-## Build Tools
+## Features
+
+| Module | What it does |
+|--------|-------------|
+| 🌐 **Network** | Interface info, host discovery, port scan, MAC vendor, traceroute |
+| 🔍 **OSINT** | Full OSINT (IP/domain/email/username), WHOIS, DNS, subdomains, SSL, Shodan |
+| 🕸️ **Web Exploit** | Headers, dir brute-force, SQLi, XSS payloads, JWT decoder, CORS, WAF |
+| 🔐 **Crypto** | Hash, Base64, URL/hex encode, ROT13, OpenSSL encrypt, random key gen |
+| 🧬 **Forensics** | File magic, strings, entropy analysis, pcap capture, process forensics |
+| ⬆️ **PrivEsc** | SUID/SGID, writable paths, sudo perms, cron jobs, capabilities |
+| ⚙️ **Settings** | 4 themes, EN/TH language toggle |
+
+---
+
+## Quick Start
 
 ```bash
-# Install dependencies (Debian/Ubuntu)
-sudo apt-get install gcc make libreadline-dev
+# Clone
+git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
+cd distro-os-cyber-agian-on-termux
 
-# Build all tools
-make all
+# Run directly
+bash phantomsec.sh
 
-# Install to /usr/local/bin
-sudo make install
+# Or install properly
+bash install.sh
+phantomsec
+```
 
-# Build in Thai language mode
-make LANG=th all
+### Termux (Android)
 
-# Build individual tool
-make spectrscan
+```bash
+pkg update && pkg install git curl nmap python
+git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
+cd distro-os-cyber-agian-on-termux
+bash install.sh
 ```
 
 ---
 
-## Build the Full Distro ISO
+## Language / ภาษา
 
-> Requires ~10GB disk space, ~2 hours build time, Linux host
+Switch between English and Thai inside the app via **Settings → Language**.
 
+Or set before launch:
 ```bash
-cd distro/
-sudo chmod +x build.sh
-sudo ./build.sh
-
-# Test with QEMU
-qemu-system-x86_64 -cdrom /tmp/phantomsec-2.0.0-x86_64.iso -m 512M
+PHANTOMSEC_LANG=th bash phantomsec.sh   # Thai
+PHANTOMSEC_LANG=en bash phantomsec.sh   # English (default)
 ```
 
 ---
 
-## Tool Usage
+## Themes
 
-### SpecterScan — Firewall ACL Reconstructor
-
-```bash
-# Reconstruct firewall rules from timing patterns
-sudo spectrscan -t 192.168.1.1 -p 1-1024
-
-# Save report
-sudo spectrscan -t 10.0.0.1 -p 1-65535 -o fw_report.csv
-
-# Thai output
-PHANTOMSEC_LANG=th sudo spectrscan -t 192.168.1.1 -p 80,443,22
-```
-
-### EntropyWarden — Ransomware Detector
-
-```bash
-# Watch /home and /var for entropy spikes
-sudo entropyd -w /home -w /var
-
-# Custom threshold (7.0 bits/byte = definitely encrypted)
-sudo entropyd -w /home -t 7.0 -n 3 -W 5
-
-# Verbose (show all files)
-sudo entropyd -w /home -v
-```
-
-### SyscallDNA — Behavioral Fingerprinter
-
-```bash
-# Fingerprint a running process
-sudo scdna -p $(pgrep sshd)
-
-# Save baseline profile
-sudo scdna -p $(pgrep nginx) -s /etc/phantomsec/profiles/nginx.dna
-
-# Compare against baseline (anomaly detection)
-sudo scdna -p 1234 -c /etc/phantomsec/profiles/nginx.dna
-```
-
-### NetGhost — Passive Topology Mapper
-
-```bash
-# Map network for 60 seconds (NO packets sent)
-sudo netghost -i eth0 -t 60
-
-# Infinite capture, show all hosts
-sudo netghost -i wlan0 -t 0 -a
-
-# Save topology report
-sudo netghost -i eth0 -t 120 -o topology.csv
-```
-
-### PhantomShell (psh) — Custom Shell
-
-```bash
-# Start PhantomShell
-psh
-
-# Start in Thai mode
-PHANTOMSEC_LANG=th psh
-
-# Inside psh:
-help           # Show help (bilingual)
-tools          # List PhantomSec tools
-entropy /home  # Check directory entropy
-threat         # Live threat monitor
-lang th        # Switch to Thai
-lang en        # Switch to English
-```
+| Theme | Style |
+|-------|-------|
+| `phantom` | Cyan / void black (default) |
+| `matrix` | Green / black |
+| `blood` | Red / dark |
+| `stealth` | Minimal gray |
 
 ---
 
-## i18n — Multilingual Support
+## Two Repos Explained
 
-All tools support English and Thai via `PHANTOMSEC_LANG` environment variable:
-
-```bash
-export PHANTOMSEC_LANG=th   # Thai (ภาษาไทย)
-export PHANTOMSEC_LANG=en   # English (default)
-```
-
-Or compile with Thai as default:
-
-```bash
-make LANG=th all   # Compile with Thai strings baked in
-```
+| | This repo (Distro Feel) | [phantomsec-os](https://github.com/wippsanrinthailand80-commits/phantomsec-os) (Real Distro) |
+|---|---|---|
+| Language | Bash | C / C++ |
+| Platform | Termux, Linux, macOS | Native Linux x86-64 |
+| Runs on | Any device with Bash | Bare metal / VM |
+| Tools | Wrappers + shell scripts | 5 original tools with novel algorithms |
+| ISO | No | Yes (build with `distro/build.sh`) |
+| Kernel | Host kernel | Custom hardened Linux 6.6 |
 
 ---
 
-## v1 vs v2 Comparison
-
-| Feature | v1 (Termux/Shell) | v2 (PhantomSec OS C/C++) |
-|---------|-------------------|--------------------------|
-| Language | Shell script | C / C++ |
-| Platform | Termux (Android) | Native Linux |
-| Tools | Wrappers around existing tools | Original, never-before-seen tools |
-| i18n | Partial Thai | Full EN/TH bilingual |
-| Distro | No | Full custom Linux from scratch |
-| Kernel | Android kernel | Custom hardened Linux 6.6 |
-| Init | Android init | Custom C init system |
-
----
-
-## Security Notice
-
-These tools are for **authorized security testing and research only**. Use only on systems you own or have explicit written permission to test. The authors are not responsible for misuse.
-
----
-
-*Built with ☠️ in Thailand | สร้างด้วยใจในประเทศไทย*
+*สร้างด้วยใจในประเทศไทย | Built with ❤️ in Thailand*
