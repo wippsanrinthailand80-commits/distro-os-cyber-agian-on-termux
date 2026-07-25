@@ -129,6 +129,8 @@ require_tool() {
       echo -ne "  Install now? [y/N] "; read -r yn
       [ "${yn,,}" = "y" ] && sudo apt-get install -y "$tool"
     fi
+    # Re-check if tool is now available after install attempt
+    command -v "$tool" &>/dev/null && return 0
     return 1
   fi
   return 0
@@ -493,8 +495,8 @@ show_about() {
   echo -e "  ${W}PhantomSec — Distro Feel Edition v${VERSION}${NC}"
   echo -e "  ${DIM}Termux/Linux cybersecurity toolkit${NC}"
   echo ""
-  echo -e "  ${C}GitHub:${NC}   https://github.com/wippsanrinthailand80-commits/phantomsec-distro-feel"
-  echo -e "  ${C}Real OS:${NC}  https://github.com/wippsanrinthailand80-commits/phantomsec-os"
+  echo -e "  ${C}GitHub:${NC}   https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux"
+  echo -e "  ${C}Editions:${NC} distro-feel/ · os/ · termux/"
   echo ""
   echo -e "  ${G}This version:${NC} Shell-based toolkit — runs anywhere Bash runs"
   echo -e "  ${G}Real distro:${NC}  C/C++ Linux from scratch with original security tools"

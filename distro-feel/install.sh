@@ -14,6 +14,7 @@ G='\033[0;32m' Y='\033[1;33m' C='\033[0;36m' R='\033[0;31m' NC='\033[0m' BOLD='\
 INSTALL_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
 BIN_DIR="$HOME/.local/bin"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DISTRO_FEEL_DIR="$REPO_DIR"
 
 log()  { echo -e "${G}[+]${NC} $*"; }
 warn() { echo -e "${Y}[!]${NC} $*"; }
@@ -60,7 +61,9 @@ ok "Dependencies done."
 log "Installing Distro Feel toolkit to $INSTALL_DIR ..."
 mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 
-cp -r "$REPO_DIR/." "$INSTALL_DIR/"
+cp -r "$DISTRO_FEEL_DIR/phantomsec.sh" "$INSTALL_DIR/"
+cp -r "$DISTRO_FEEL_DIR/modules" "$INSTALL_DIR/" 2>/dev/null || true
+cp -r "$DISTRO_FEEL_DIR/themes" "$INSTALL_DIR/" 2>/dev/null || true
 chmod +x "$INSTALL_DIR/phantomsec.sh"
 chmod +x "$INSTALL_DIR/modules/"*.sh 2>/dev/null || true
 chmod +x "$INSTALL_DIR/themes/"*.sh  2>/dev/null || true
