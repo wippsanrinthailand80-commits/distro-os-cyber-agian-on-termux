@@ -29,7 +29,7 @@ cat << 'BANNER'
 BANNER
 echo -e "${NC}"
 echo -e "  ${DIM}┌──────────────────────────────────────────────┐${NC}"
-echo -e "  ${DIM}│  ${C}Bootstrap Installer${DIM}  │  ${G}PhantomSec OS v1.1.0${DIM}  │${NC}"
+echo -e "  ${DIM}│  ${C}Bootstrap Installer${DIM}  │  ${G}PhantomSec OS v1.4.2${DIM}  │${NC}"
 echo -e "  ${DIM}└──────────────────────────────────────────────┘${NC}"
 echo ""
 

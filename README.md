@@ -18,13 +18,39 @@
 [![Version](https://img.shields.io/badge/Version-1.4.2-purple?style=flat-square)]()
 [![Status](https://img.shields.io/badge/Status-Actively%20Maintained-brightgreen?style=flat-square&logo=github)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/commits/main)
 [![Last Updated](https://img.shields.io/badge/Last%20Updated-July%202026-blue?style=flat-square)]()
-[![Stars](https://img.shields.io/github/stars/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-again-on-termux/stargazers)
+[![Stars](https://img.shields.io/github/stars/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/stargazers)
 
 **PhantomSec OS** turns your Android device + Termux into a full-featured cybersecurity research environment — with an interactive, colour-coded menu UI covering everything from recon to exploitation.
 
 > ⚠️ **For educational and ethical use only.** Always get written permission before testing any system you don't own.
 
 </div>
+
+---
+
+## ⚡ Quick Install
+
+### One-Command (Recommended)
+
+```bash
+curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/bootstrap.sh | bash
+```
+
+> Requires Termux with internet access. The bootstrap script installs `git` if needed, clones the repo, and runs the full installer automatically.
+
+### Manual Install
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
+cd distro-os-cyber-agian-on-termux
+
+# 2. Run the installer
+bash install.sh
+
+# 3. Launch PhantomSec
+phantomsec
+```
 
 ---
 
@@ -49,6 +75,27 @@
 
 ---
 
+## ✨ Features
+
+| Module | Description |
+|---|---|
+| **[01] Information Gathering** | Nmap, Whois, DNS enum, GeoIP, Shodan, theHarvester, WhatWeb, subdomain scanner |
+| **[02] Vulnerability Scanning** | Nmap vuln scripts, Nikto, WPScan, SSL checker, Nuclei |
+| **[03] Web Exploitation** | SQLMap, XSS generator, LFI scanner, Directory bruteforce (Gobuster), CORS checker |
+| **[04] Password Attacks** | Hydra, Hash identifier, Online hash cracker, Password generator, Wordlist manager |
+| **[05] Network Analysis** | Packet capture, Port scanner, ARP scan, Traceroute, Ping sweep |
+| **[06] Wireless Attacks** | WiFi scanning, Handshake capture, Aircrack-ng integration |
+| **[07] Reverse Shells** | Payload generator (Bash/Python/NC/PowerShell), Netcat listener, Web shell templates |
+| **[08] Forensics & Analysis** | File analysis, String extraction, Steganography, Log analyzer, Memory dump |
+| **[09] Cryptography Tools** | Encode/decode (Base64/Hex/ROT13), Hash generator, Caesar cipher, OpenSSL wrapper |
+| **[10] Tool Manager** | Check tool status, install/update tools, one-click batch install |
+| **[11] Sessions & Reports** | Session logging, report viewer, auto-save scan results |
+| **[12] Settings** | Theme selector, API key config, display options |
+| **[13] Social Engineering** | Zphisher, Metasploit info, SET guide |
+| **[14] Privilege Escalation** | SUID finder, sudo checker, cron job auditor, writable dir scanner |
+
+---
+
 ## 📸 Preview
 
 ### Main Menu
@@ -67,186 +114,14 @@
 ║  [07]  🐚 Reverse Shells              Payloads & listeners      ║
 ║  [08]  🛡️  Forensics & Analysis        Evidence & memory         ║
 ║  [09]  🔐 Cryptography Tools          Encode, decode, hash      ║
-║  [10]  📦 Tool Manager                Install & update          ║
-║  [11]  📊 Session Manager             Logs & reports            ║
-║  [12]  ⚙️  Settings                    Config & themes           ║
-║  [13]  🎣 Social Engineering          Phishing & SE tools       ║
-║  [14]  🍯 Honeypot                    Trap & log attackers      ║
+║  [10]  📦 Tool Manager                Install & update tools    ║
+║  [11]  📋 Sessions & Reports          View saved results        ║
+║  [12]  ⚙️  Settings                    Theme & API keys          ║
+║  [13]  🎭 Social Engineering          Phishing & SET            ║
+║  [14]  🔺 Privilege Escalation        PrivEsc checks            ║
 ║                                                                  ║
-║  [00]  Exit PhantomSec                                          ║
-║                                                                  ║
+║  [0]   Exit                                                      ║
 ╚══════════════════════════════════════════════════════════════════╝
-  ▶ Select option:
-```
-
-### Sub-menu Examples
-
-<details>
-<summary>🔍 Information Gathering (13 tools)</summary>
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  🔍 INFORMATION GATHERING                                       ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  [1]   Nmap Port Scanner           [INSTALLED]                  ║
-║  [2]   Whois Lookup                [INSTALLED]                  ║
-║  [3]   DNS Enumeration             (dig / nslookup)             ║
-║  [4]   Subdomain Finder            (curl + wordlist)            ║
-║  [5]   GeoIP Lookup                (ip-api.com)                 ║
-║  [6]   HTTP Header Inspector       (curl)                       ║
-║  [7]   Shodan Search               (API key required)           ║
-║  [8]   Banner Grabbing             (nc / curl)                  ║
-║  [9]   WhatWeb Fingerprint         [INSTALLED]                  ║
-║  [10]  theHarvester OSINT          [INSTALLED]                  ║
-║  [11]  Wayback Machine Lookup      (archive.org)                ║
-║  [12]  SSL Certificate Inspector   (openssl)                    ║
-║  [13]  Email OSINT                 (leaks & breach check)       ║
-║                                                                  ║
-║  [0]   Back                                                     ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-</details>
-
-<details>
-<summary>💉 Web Exploitation (6 tools)</summary>
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  💉 WEB EXPLOITATION                                            ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  [1]  SQLMap — SQL Injection        [INSTALLED]                 ║
-║  [2]  XSS Payload Generator        (built-in)                   ║
-║  [3]  Directory Bruteforce         (curl)                       ║
-║  [4]  LFI Tester                   (built-in)                   ║
-║  [5]  CORS & Security Headers      (built-in)                   ║
-║  [6]  Gobuster Dir Scan            [INSTALLED]                  ║
-║                                                                  ║
-║  [0]  Back                                                      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-</details>
-
-<details>
-<summary>🔑 Password Attacks (6 tools)</summary>
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  🔑 PASSWORD ATTACKS                                            ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  [1]  Hydra — Network Bruteforce   [INSTALLED]                  ║
-║  [2]  Hash Identifier              (built-in)                   ║
-║  [3]  Hash Cracker (online)        (hashes.com)                 ║
-║  [4]  Password Generator           (built-in)                   ║
-║  [5]  Wordlist Manager             (built-in)                   ║
-║  [6]  John the Ripper              [INSTALLED]                  ║
-║                                                                  ║
-║  [0]  Back                                                      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-</details>
-
-<details>
-<summary>🔓 Vulnerability Scanning (7 tools)</summary>
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  🔓 VULNERABILITY SCANNING                                      ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  [1]  Nikto Web Scanner            [INSTALLED]                  ║
-║  [2]  OpenVAS (via REST)           (external)                   ║
-║  [3]  CVE Lookup                   (nvd.nist.gov)               ║
-║  [4]  SSL/TLS Checker              (ssllabs)                    ║
-║  [5]  Custom Nmap Vuln Script      (--script vuln)              ║
-║  [6]  Nuclei Scanner               [INSTALLED]                  ║
-║  [7]  OWASP Quick Check            (headers+dirs+methods)       ║
-║                                                                  ║
-║  [0]  Back                                                      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-</details>
-
-<details>
-<summary>🐚 Reverse Shells (3 tools)</summary>
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  🐚 REVERSE SHELLS                                              ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  [1]  Generate Payloads            (bash/python/nc/php/perl)    ║
-║  [2]  Start Listener               (nc -lvnp)                   ║
-║  [3]  Web Shell Generator          (PHP/Python)                 ║
-║                                                                  ║
-║  [0]  Back                                                      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-</details>
-
----
-
-## ⚡ Quick Install
-
-### วิธีที่ 1 — One-Command (แนะนำ)
-
-เปิด **Termux** แล้วรันคำสั่งเดียว:
-
-```bash
-curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/bootstrap.sh | bash
-```
-
-> Bootstrap จะ clone repo และรัน installer ให้อัตโนมัติ
-
----
-
-### วิธีที่ 2 — Manual Install
-
-```bash
-pkg update -y && pkg install -y git
-git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
-cd distro-os-cyber-agian-on-termux
-chmod +x install.sh
-bash install.sh
-```
-
-หลังติดตั้งเสร็จ เปิดด้วย:
-
-```bash
-phantomsec
-```
-
----
-
-## 🛠️ Tools & Modules
-
-| Category | Tools |
-|---|---|
-| 🔍 **Recon / OSINT** | nmap, whois, dig, geoip, banner grabber, subdomain finder, whatweb, theHarvester, email OSINT |
-| 🔓 **Vuln Scanning** | nikto, nmap --script vuln, CVE lookup, SSL/TLS inspector, Nuclei, OWASP quick check |
-| 💉 **Web Exploitation** | sqlmap, XSS generator, dir bruteforce, LFI tester, CORS checker, Gobuster |
-| 🔑 **Password Attacks** | hydra, john, hash identifier, online hash lookup, wordlist manager, password generator |
-| 📡 **Network Analysis** | tcpdump, netstat, masscan, ARP scan, port scanner, traceroute |
-| 📱 **Wireless** | aircrack-ng, WiFi scanner, Bluetooth tools |
-| 🐚 **Reverse Shells** | payload generator (bash/python/nc/php/perl), netcat listener, web shell templates |
-| 🛡️ **Forensics** | strings, binwalk, file carving, log analysis, steghide |
-| 🔐 **Crypto** | hash tools, base64, Caesar cipher, encode/decode |
-| 🎭 **Social Engineering** | Zphisher, Metasploit info, SET |
-| 🔺 **Privilege Escalation** | SUID finder, sudo check, kernel exploits, linpeas |
-
----
-
-## 🔑 Optional API Keys
-
-บาง module ต้องการ API key — ใส่ใน `~/.phantomsec/config.env`:
-
-```bash
-SHODAN_API_KEY="your_key_here"
-VIRUSTOTAL_API_KEY="your_key_here"
-CENSYS_API_ID="your_id"
-CENSYS_API_SECRET="your_secret"
 ```
 
 ---
@@ -254,11 +129,12 @@ CENSYS_API_SECRET="your_secret"
 ## 🔄 Update
 
 ```bash
-cd distro-os-cyber-agian-on-termux
+# From inside the menu:
+# Option 10 (Tool Manager) → Update PhantomSec
+
+# Or run directly:
 bash update.sh
 ```
-
-หรือเปิดใน menu: **Option 10 → Update PhantomSec**
 
 ---
 
@@ -280,6 +156,35 @@ bash uninstall.sh
 | **v1.3.1** | Jun 2026 | เพิ่ม honeypot, session manager, themes |
 
 > ดูรายละเอียดทั้งหมดที่ [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## 📁 Repository Structure
+
+```
+distro-os-cyber-agian-on-termux/
+├── phantomsec.sh       # Main interactive menu (1886 lines)
+├── install.sh          # Full installer
+├── update.sh           # Updater (git stash → pull → pop)
+├── uninstall.sh        # Clean uninstaller
+├── bootstrap.sh        # One-command bootstrap (curl | bash)
+├── VERSION             # Current version string
+├── config/
+│   └── settings.conf   # Default configuration
+├── modules/
+│   ├── osint.sh        # OSINT module
+│   ├── privesc.sh      # Privilege escalation checks
+│   ├── recon.sh        # Standalone recon script
+│   ├── webexploit.sh   # Web exploitation helpers
+│   └── nettools.sh     # Network tools
+├── themes/
+│   ├── matrix.sh       # Matrix green theme
+│   ├── dark.sh         # Dark theme
+│   └── classic.sh      # Classic theme
+└── docs/
+    ├── USAGE.md        # Usage guide & example workflows
+    └── TOOLS.md        # Tool reference & command examples
+```
 
 ---
 
