@@ -28,7 +28,7 @@ static void usage(const char *argv0)
 {
     fprintf(stderr,
         "phantom-proot — PhantomSec user-space chroot via ptrace\n"
-        "Version: 2.5.3 | ARM64-primary | no root required\n"
+        "Version: 2.5.4 | ARM64-primary | no root required\n"
         "\n"
         "Usage:\n"
         "  %s -r <rootfs> [-b <host>:<guest>] ... -- <cmd> [args...]\n"

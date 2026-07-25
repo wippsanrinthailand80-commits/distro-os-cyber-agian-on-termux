@@ -34,9 +34,9 @@ HOSTS
 # APT sources — detect architecture for correct mirror
 ARCH="$(uname -m)"
 if [ "$ARCH" = "x86_64" ]; then
-  APT_MIRROR="http://archive.ubuntu.com/ubuntu"
+  APT_MIRROR="https://archive.ubuntu.com/ubuntu"
 else
-  APT_MIRROR="http://ports.ubuntu.com/ubuntu-ports"
+  APT_MIRROR="https://ports.ubuntu.com/ubuntu-ports"
 fi
 
 cat > "$ROOTFS_DIR/etc/apt/sources.list" << SOURCES

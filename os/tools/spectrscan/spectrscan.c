@@ -1,6 +1,6 @@
 /*
  * SpecterScan — Passive Firewall ACL Reconstructor
- * PhantomSec OS v2.5.3 | Written in C
+ * PhantomSec OS v2.5.4 | Written in C
  *
  * UNIQUE TOOL: No existing public tool reconstructs firewall rulesets
  * by analyzing TCP timing patterns and TTL decrements without triggering IDS.
@@ -44,7 +44,7 @@
 #define PROBE_TIMEOUT  500000   /* 500ms in microseconds */
 #define TIMING_SAMPLES 3        /* probes per port for timing accuracy */
 #define SHAPED_THRESH  150000   /* 150ms consistent delay = policer */
-#define VERSION        "2.5.3"
+#define VERSION        "2.5.4"
 
 /* Firewall behavior classification */
 typedef enum {

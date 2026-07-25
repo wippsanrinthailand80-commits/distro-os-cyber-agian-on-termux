@@ -1,6 +1,6 @@
 /*
  * PhantomShell (psh) — PhantomSec OS Custom Shell
- * PhantomSec OS v2.5.3 | Written in C
+ * PhantomSec OS v2.5.4 | Written in C
  *
  * A purpose-built shell for PhantomSec OS with:
  *   - Bilingual interface (English / Thai) via PHANTOMSEC_LANG env var
@@ -35,7 +35,7 @@
 
 #include "../../i18n/i18n.h"
 
-#define PSH_VERSION      "2.5.3"
+#define PSH_VERSION      "2.5.4"
 #define PSH_MAX_LINE     4096
 #define PSH_MAX_ARGS     256
 #define PSH_MAX_HISTORY  1000

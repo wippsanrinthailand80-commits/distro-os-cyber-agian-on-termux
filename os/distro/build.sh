@@ -12,9 +12,9 @@ set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────────────────────
 DISTRO_NAME="PhantomSec OS"
-DISTRO_VERSION="2.5.3"
+DISTRO_VERSION="2.5.4"
 ARCH="${ARCH:-x86_64}"
-BUILD_DIR="${BUILD_DIR:-/tmp/phantomsec-build}"
+BUILD_DIR="${BUILD_DIR:-$(mktemp -d /tmp/phantomsec-build.XXXXXX)}"
 SYSROOT="${BUILD_DIR}/sysroot"
 TOOLS_DIR="${BUILD_DIR}/tools"
 OUTPUT="${OUTPUT:-/tmp/phantomsec-${DISTRO_VERSION}-${ARCH}.iso}"
@@ -242,7 +242,7 @@ EOF
 ps_banner() {
     printf "\033[0;36m"
     echo " ╔══════════════════════════════════════╗"
-    echo " ║     PhantomSec OS v2.5.3             ║"
+    echo " ║     PhantomSec OS v2.5.4             ║"
     echo " ║     Built entirely in C/C++          ║"
     echo " ╚══════════════════════════════════════╝"
     printf "\033[0m\n"

@@ -7,7 +7,8 @@ source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
 step "Step 4 — Ubuntu ARM64 rootfs"
 
-ROOTFS_TAR="${TMPDIR:-/tmp}/phantomsec-rootfs.tar.gz"
+# Use unique temp file to prevent symlink/race attacks
+ROOTFS_TAR="$(mktemp "${TMPDIR:-/tmp}/phantomsec-rootfs.XXXXXX.tar.gz")"
 
 # Cleanup trap for partial downloads
 cleanup_rootfs() {
@@ -89,7 +90,8 @@ else
   # Method 2: tar -xzf
   if [ "$EXTRACTION_OK" -eq 0 ]; then
     log "Attempting extraction (method: tar -xzf)..."
-    rm -rf "$ROOTFS_DIR"/*
+    # Clean hidden files too (rm -rf * misses dotfiles)
+    find "$ROOTFS_DIR" -mindepth 1 -delete 2>/dev/null || rm -rf "$ROOTFS_DIR"/*
     if tar -xzf "$ROOTFS_TAR" -C "$ROOTFS_DIR" 2>&1; then
       EXTRACTION_OK=1
     fi
@@ -98,7 +100,7 @@ else
   # Method 3: tar -xf (auto-detect compression)
   if [ "$EXTRACTION_OK" -eq 0 ]; then
     log "Attempting extraction (method: tar -xf)..."
-    rm -rf "$ROOTFS_DIR"/*
+    find "$ROOTFS_DIR" -mindepth 1 -delete 2>/dev/null || rm -rf "$ROOTFS_DIR"/*
     if tar -xf "$ROOTFS_TAR" -C "$ROOTFS_DIR" 2>&1; then
       EXTRACTION_OK=1
     fi
