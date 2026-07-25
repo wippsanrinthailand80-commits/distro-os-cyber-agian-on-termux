@@ -5,12 +5,11 @@
 [![Platform](https://img.shields.io/badge/platform-Termux%20%7C%20Linux%20%7C%20macOS-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
 [![Language](https://img.shields.io/badge/language-Bash-00d4ff?style=flat-square)](phantomsec.sh)
 [![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](phantomsec.sh)
-[![Version](https://img.shields.io/badge/version-2.0.1-00d4ff?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.1-00d4ff?style=flat-square)](VERSION)
 
 ---
 
-> Looking for the **real Linux distro**? → [phantomsec-os](https://github.com/wippsanrinthailand80-commits/phantomsec-os)
-> That repo is the full C/C++ OS built from scratch.
+> This is the **Distro Feel Edition** — a shell-based toolkit that runs anywhere Bash runs. Not a real Linux distro.
 
 ---
 
@@ -23,6 +22,14 @@
 - 🍎 **macOS** (with Homebrew tools)
 
 No kernel recompile. No virtual machine. Just `bash phantomsec.sh`.
+
+---
+
+## ⚡ One-Line Install
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
+```
 
 ---
 
@@ -43,14 +50,12 @@ No kernel recompile. No virtual machine. Just `bash phantomsec.sh`.
 ## Quick Start
 
 ```bash
-# Clone
+# One-line install (recommended)
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
+
+# Or manually
 git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
 cd distro-os-cyber-agian-on-termux
-
-# Run directly
-bash phantomsec.sh
-
-# Or install properly
 bash install.sh
 phantomsec
 ```
@@ -59,9 +64,17 @@ phantomsec
 
 ```bash
 pkg update && pkg install git curl nmap python
-git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
-cd distro-os-cyber-agian-on-termux
-bash install.sh
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
+```
+
+---
+
+## Update
+
+```bash
+phantomsec --update
+# or
+cd ~/.phantomsec && git pull && bash install.sh
 ```
 
 ---
@@ -89,17 +102,7 @@ PHANTOMSEC_LANG=en bash phantomsec.sh   # English (default)
 
 ---
 
-## Two Repos Explained
+## License
 
-| | This repo (Distro Feel) | [phantomsec-os](https://github.com/wippsanrinthailand80-commits/phantomsec-os) (Real Distro) |
-|---|---|---|
-| Language | Bash | C / C++ |
-| Platform | Termux, Linux, macOS | Native Linux x86-64 |
-| Runs on | Any device with Bash | Bare metal / VM |
-| Tools | Wrappers + shell scripts | 5 original tools with novel algorithms |
-| ISO | No | Yes (build with `distro/build.sh`) |
-| Kernel | Host kernel | Custom hardened Linux 6.6 |
-
----
-
-*สร้างด้วยใจในประเทศไทย | Built with ❤️ in Thailand*
+MIT — for authorized security testing and research only.  
+ใช้เพื่อการศึกษาและการทดสอบที่ได้รับอนุญาตเท่านั้น
