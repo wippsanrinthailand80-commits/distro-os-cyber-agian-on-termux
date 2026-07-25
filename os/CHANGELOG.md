@@ -1,6 +1,6 @@
 # PhantomSec OS — Changelog
 
-## v2.5.4 (2026-07-25)
+## v2.5.5 (2026-07-25)
 
 ### Fixed
 - **CRITICAL**: Termux installer — replaced `xxd` with `od` for rootfs gzip validation (xxd not installed by default, caused installer to always fail)
@@ -31,7 +31,7 @@
 - **MEDIUM**: netghost.c — added bind() return value check with meaningful error message
 - **MEDIUM**: termux/install.sh — fixed `[: too many arguments` error (POSIX `[ ]` → bash `[[ ]]` for glob pattern)
 - **MEDIUM**: termux/setup/07_launchers.sh — fixed `$PREFIX` unset causing crash under `set -u`
-- **MEDIUM**: proot/main.c — fixed version string mismatch (1.0.0 → 2.5.4)
+- **MEDIUM**: proot/main.c — fixed version string mismatch (1.0.0 → 2.5.5)
 - **LOW**: Termux — added `$HOME:/root` bind-mount to per-tool launchers (was inconsistent with main launcher)
 - **LOW**: Termux — fixed double checkmark in architecture message
 - **LOW**: Termux — use `/tmp` for rootfs tarball with cleanup trap
@@ -43,10 +43,10 @@
 - **LOW**: distro-feel/phantomsec.sh — fixed wrong GitHub URL reference
 - **LOW**: proot/main.c — removed unused cmd_path_host stack allocation (32KB wasted)
 - **LOW**: psh.c — fixed stale build comment (removed -lreadline reference)
-- **LOW**: All version strings unified to v2.5.4 across every file
+- **LOW**: All version strings unified to v2.5.5 across every file
 
 ### Changed
-- All edition version strings aligned to `2.5.4`
+- All edition version strings aligned to `2.5.5`
 - Alpine Linux removed from Termux fallback URLs (incompatible with Ubuntu config)
 
 ---

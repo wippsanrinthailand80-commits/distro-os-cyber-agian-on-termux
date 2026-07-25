@@ -1,9 +1,9 @@
-# PhantomSec v2.5.4
+# PhantomSec v2.5.5
 
 > *One project. Three tiers. From shell script to custom OS.*
 
 [![Platform](https://img.shields.io/badge/platform-Termux%20%7C%20Linux%20%7C%20macOS-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
-[![Version](https://img.shields.io/badge/version-2.5.4-00d4ff?style=flat-square)](VERSION)
+[![Version](https://img.shields.io/badge/version-2.5.5-00d4ff?style=flat-square)](VERSION)
 [![Language](https://img.shields.io/badge/language-Bash%20%7C%20C%2FC%2B%2B-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
 [![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
 

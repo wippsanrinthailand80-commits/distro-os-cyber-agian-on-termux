@@ -47,6 +47,7 @@ struct pp_user_pt_regs {
 static int arm64_getregs(pid_t pid, struct pp_user_pt_regs *r)
 {
     struct iovec iov = { r, sizeof(*r) };
+    memset(r, 0, sizeof(*r));
     if (ptrace(PTRACE_GETREGSET, pid, (void *)(long)NT_PRSTATUS, &iov) < 0) {
         perror("PTRACE_GETREGSET");
         return -1;

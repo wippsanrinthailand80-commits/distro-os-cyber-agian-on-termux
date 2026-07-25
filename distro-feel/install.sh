@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec — Distro Feel Edition v2.5.4                        ║
+# ║          PhantomSec — Distro Feel Edition v2.5.5                        ║
 # ║          Shell Toolkit Installer                                         ║
 # ║          Supports: Termux (Android) · Linux · macOS                     ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
@@ -22,7 +22,7 @@ err()  { echo -e "${R}[✗]${NC} $*"; exit 1; }
 ok()   { echo -e "${G}[✓]${NC} $*"; }
 
 echo ""
-echo -e "${C}${BOLD}  PhantomSec — Distro Feel Edition v2.5.4${NC}"
+echo -e "${C}${BOLD}  PhantomSec — Distro Feel Edition v2.5.5${NC}"
 echo -e "${C}  Shell Toolkit Installer${NC}"
 echo -e "${Y}  (Not a real OS — shell-based distro feel toolkit)${NC}\n"
 
@@ -85,7 +85,7 @@ done
 
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${C}${BOLD}  PhantomSec Distro Feel v2.5.4 installed.${NC}"
+echo -e "${C}${BOLD}  PhantomSec Distro Feel v2.5.5 installed.${NC}"
 echo -e "  Run: ${G}phantomsec${NC}"
 echo -e "  Or:  ${G}bash ~/.phantomsec/phantomsec.sh${NC}"
 echo ""

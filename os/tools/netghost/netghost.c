@@ -1,6 +1,6 @@
 /*
  * NetGhost — Passive Network Topology Mapper
- * PhantomSec OS v2.5.4 | Written in C
+ * PhantomSec OS v2.5.5 | Written in C
  *
  * UNIQUE TOOL: NetGhost reconstructs the full network topology (hosts, routers,
  * subnets, routing paths, AS boundaries) by sniffing existing traffic only.

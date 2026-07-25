@@ -156,8 +156,6 @@ static int rewrite_path_arg(pp_tracee_t *t, int argno)
     if (!ptr) return 0;  /* NULL path — skip */
 
     if (mem_read_str(t->pid, ptr, orig, sizeof(orig)) < 0) {
-        fprintf(stderr, "[proot] mem_read_str failed (pid %d arg %d)\n",
-                t->pid, argno);
         return -1;
     }
     if (orig[0] == '\0') return 0;
@@ -272,21 +270,33 @@ void syscall_handle_exit(pp_tracee_t *t)
     if (arch_get_retval(t->pid, &ret) < 0) return;
     if (ret < 0) return;  /* syscall failed — nothing to fix */
 
-    /* chdir succeeded: update our tracked guest cwd */
+    /* chdir succeeded: update our tracked guest cwd.
+     * saved_arg[0] was captured on ENTER before rewrite_path_arg moved the
+     * register, so it still points to the ORIGINAL guest path string in the
+     * tracee's memory (e.g. "/root" or "../tmp"). We need to resolve it to
+     * an absolute guest path and store in t->cwd. */
     if (sysno == SYS_chdir) {
         char orig[PP_MAX_PATH];
         unsigned long ptr = t->saved_arg[0];
-        if (ptr && mem_read_str(t->pid, ptr, orig, sizeof(orig)) > 0) {
-            char abs[PP_MAX_PATH];
+        if (ptr && mem_read_str(t->pid, ptr, orig, sizeof(orig)) > 0 &&
+            orig[0] != '\0') {
+            /* Resolve relative paths against current guest cwd */
             if (orig[0] == '/') {
-                snprintf(abs, sizeof(abs), "%s", orig);
+                snprintf(t->cwd, sizeof(t->cwd), "%s", orig);
             } else {
-                snprintf(abs, sizeof(abs), "%s/%s", t->cwd, orig);
+                snprintf(t->cwd, sizeof(t->cwd), "%s/%s", t->cwd, orig);
             }
-            /* normalize by re-translating and stripping root prefix */
-            char host[PP_MAX_PATH];
-            path_translate(g_pp.root, t->cwd, orig, host, sizeof(host));
-            path_detranslate(g_pp.root, host, t->cwd, sizeof(t->cwd));
+            /* Normalize (resolve . and ..) in-place */
+            char norm[PP_MAX_PATH];
+            snprintf(norm, sizeof(norm), "%s", t->cwd);
+            /* Simple normalization: resolve double slashes */
+            char *dst = t->cwd;
+            const char *src = norm;
+            while (*src) {
+                if (src[0] == '/' && src[1] == '/') { src++; continue; }
+                *dst++ = *src++;
+            }
+            *dst = '\0';
         }
         return;
     }
@@ -307,27 +317,27 @@ void syscall_handle_exit(pp_tracee_t *t)
         return;
     }
 
-    /* getcwd: the kernel wrote the real host path into the buffer.
-     * We must de-translate it back to the guest path. */
+    /* getcwd: the kernel wrote the host CWD into the buffer.
+     * De-translate it back to the guest path. Also update t->cwd. */
     if (sysno == SYS_getcwd) {
         unsigned long buf  = t->saved_arg[0];
         unsigned long size = t->saved_arg[1];
-        if (!buf || !size) return;
+        if (!buf || !size || ret <= 0) return;
 
         char host_cwd[PP_MAX_PATH];
-        if (mem_read_str(t->pid, buf, host_cwd, sizeof(host_cwd)) < 0)
-            return;
+        if (mem_read_str(t->pid, buf, host_cwd, sizeof(host_cwd)) < 0) return;
+        if (host_cwd[0] == '\0') return;
 
         char guest_cwd[PP_MAX_PATH];
-        path_detranslate(g_pp.root, host_cwd, guest_cwd, sizeof(guest_cwd));
-
-        size_t glen = strlen(guest_cwd) + 1;
-        if (glen > size) {
-            arch_set_retval(t->pid, -ERANGE);
-            return;
+        if (path_detranslate(g_pp.root, host_cwd, guest_cwd,
+                             sizeof(guest_cwd)) == 0) {
+            size_t glen = strlen(guest_cwd) + 1;
+            if (glen <= (size_t)ret) {
+                mem_write(t->pid, buf, guest_cwd, glen);
+                arch_set_retval(t->pid, (long)glen);
+            }
+            snprintf(t->cwd, sizeof(t->cwd), "%s", guest_cwd);
         }
-        mem_write(t->pid, buf, guest_cwd, glen);
-        arch_set_retval(t->pid, (long)glen);
         return;
     }
 

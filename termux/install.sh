@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec OS — Termux Edition v2.5.4                          ║
+# ║          PhantomSec OS — Termux Edition v2.5.5                          ║
 # ║          phantom-proot installer — modular setup                        ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 # One-line install:
@@ -39,7 +39,7 @@ cat << 'BANNER'
   ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚══╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝
 BANNER
 echo -e "${NC}"
-echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.5.4${NC}"
+echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.5.5${NC}"
 echo -e "${DIM}  phantom-proot: built from scratch in C | no root | no proot-distro${NC}\n"
 
 # ── Stage all setup scripts into a temp directory ─────────────────────────────
@@ -94,7 +94,7 @@ LOCAL_BIN="$HOME/.local/bin"
 
 echo ""
 echo -e "${C}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.5.4 ready!${NC}"
+echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.5.5 ready!${NC}"
 echo -e "${C}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "  ${G}Enter full environment:${NC}  ${BOLD}phantomsec-os${NC}"

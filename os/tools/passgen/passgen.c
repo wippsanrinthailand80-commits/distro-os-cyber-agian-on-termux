@@ -1,6 +1,6 @@
 /*
  * PassGen — Cryptographic Password Generator
- * PhantomSec OS v2.5.4 | Written in C
+ * PhantomSec OS v2.5.5 | Written in C
  *
  * Generates cryptographically secure passwords using /dev/urandom.
  * Supports custom character sets, exclusion patterns, and pronounceable mode.

@@ -1,10 +1,10 @@
-# PhantomSec OS v2.5.4
+# PhantomSec OS v2.5.5
 
 > *A custom Linux distribution engineered from scratch in C/C++ for elite offensive and defensive security work.*
 
 [![Language](https://img.shields.io/badge/language-C%2FC%2B%2B-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
 [![License](https://img.shields.io/badge/license-MIT-00d4ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.5.4-00d4ff?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.5-00d4ff?style=flat-square)](CHANGELOG.md)
 [![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](i18n/)
 
 ---
@@ -89,7 +89,7 @@ sudo chmod +x build.sh
 sudo ./build.sh
 
 # Test with QEMU
-qemu-system-x86_64 -cdrom /tmp/phantomsec-2.5.4-x86_64.iso -m 512M
+qemu-system-x86_64 -cdrom /tmp/phantomsec-2.5.5-x86_64.iso -m 512M
 ```
 
 ---

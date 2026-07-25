@@ -107,9 +107,8 @@ void tracee_event_loop(pid_t root_pid)
         int sig  = WSTOPSIG(wstatus);
         int event = (wstatus >> 16) & 0xff;  /* PTRACE_EVENT_* */
 
-        /* ── exec event: reset cwd to "/" ── */
+        /* ── exec event: keep cwd (chdir before exec already set it) ── */
         if (event == PTRACE_EVENT_EXEC) {
-            snprintf(t->cwd, sizeof(t->cwd), "/");
             t->in_syscall = 0;
             ptrace(PTRACE_SETOPTIONS, pid, 0, (void *)PP_PTRACE_OPTS);
             ptrace(PTRACE_SYSCALL,    pid, 0, 0);
@@ -136,10 +135,10 @@ void tracee_event_loop(pid_t root_pid)
         /* ── Syscall stop: bit 7 of sig is set when TRACESYSGOOD ── */
         if (sig == (SIGTRAP | 0x80)) {
             if (!t->in_syscall) {
-                /* ENTER */
+                /* ENTER — always capture args so EXIT has fresh data */
                 t->in_syscall = 1;
-                if (arch_get_sysno(pid, &t->saved_sysno) == 0 &&
-                    arch_get_args(pid, t->saved_arg)      == 0) {
+                arch_get_args(pid, t->saved_arg);
+                if (arch_get_sysno(pid, &t->saved_sysno) == 0) {
                     syscall_handle_enter(t);
                 }
             } else {

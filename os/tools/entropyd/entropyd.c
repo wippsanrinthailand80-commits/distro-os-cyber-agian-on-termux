@@ -1,6 +1,6 @@
 /*
  * EntropyWarden — Real-time Ransomware Detector
- * PhantomSec OS v2.5.4 | Written in C
+ * PhantomSec OS v2.5.5 | Written in C
  *
  * UNIQUE TOOL: No existing open-source tool combines inotify + Shannon entropy
  * analysis + sliding-window statistical detection for ransomware.

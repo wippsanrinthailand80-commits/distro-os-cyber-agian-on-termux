@@ -1,6 +1,6 @@
 /*
  * HashCheck — Hash Identifier & Integrity Checker
- * PhantomSec OS v2.5.4 | Written in C
+ * PhantomSec OS v2.5.5 | Written in C
  *
  * Identifies hash type by length/pattern, computes file checksums,
  * and verifies file integrity against known hashes.

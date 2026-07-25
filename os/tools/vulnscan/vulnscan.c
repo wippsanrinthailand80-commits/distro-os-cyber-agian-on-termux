@@ -1,6 +1,6 @@
 /*
  * VulnScan — Lightweight Vulnerability Scanner
- * PhantomSec OS v2.5.4 | Written in C
+ * PhantomSec OS v2.5.5 | Written in C
  *
  * Checks for common misconfigurations, weak permissions, outdated packages,
  * open ports with known vulnerable services, and SUID/SGID risks.

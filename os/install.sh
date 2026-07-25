@@ -19,7 +19,7 @@ PREFIX="${PREFIX:-/usr/local/bin}"
 PS_LANG="${PHANTOMSEC_LANG:-en}"
 
 echo ""
-echo -e "${C}${BOLD}  PhantomSec OS v2.5.4${NC}"
+echo -e "${C}${BOLD}  PhantomSec OS v2.5.5${NC}"
 echo -e "${C}  Real Distro — C/C++ Build Installer${NC}\n"
 
 # ── Detect OS ────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ fi
 
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${C}${BOLD}  PhantomSec OS v2.5.4 installed.${NC}"
+echo -e "${C}${BOLD}  PhantomSec OS v2.5.5 installed.${NC}"
 echo -e "  Tools: psh  netghost  spectrscan  scdna  entropyd"
 echo -e "  Run:   psh --help"
 echo ""

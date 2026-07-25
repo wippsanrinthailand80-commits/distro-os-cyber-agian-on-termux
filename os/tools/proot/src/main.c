@@ -28,7 +28,7 @@ static void usage(const char *argv0)
 {
     fprintf(stderr,
         "phantom-proot — PhantomSec user-space chroot via ptrace\n"
-        "Version: 2.5.4 | ARM64-primary | no root required\n"
+        "Version: 2.5.5 | ARM64-primary | no root required\n"
         "\n"
         "Usage:\n"
         "  %s -r <rootfs> [-b <host>:<guest>] ... -- <cmd> [args...]\n"
@@ -176,14 +176,21 @@ int main(int argc, char *argv[])
         /* Raise SIGSTOP so the parent can set options before we exec */
         raise(SIGSTOP);
 
-        /* Chdir to the host path of the guest initial cwd */
-        char host_cwd[PP_MAX_PATH];
-        if (path_translate(g_pp.root, "/", init_cwd,
-                           host_cwd, sizeof(host_cwd)) == 0) {
-            chdir(host_cwd);
+        /* Chdir to initial working directory inside the guest.
+         * Use the GUEST path — proot intercepts chdir() and translates it.
+         * Passing an already-translated host path would cause double
+         * translation: /rootfs/rootfs/root instead of /rootfs/root. */
+        if (init_cwd && init_cwd[0]) {
+            chdir(init_cwd);
         }
 
-        execv(translated_cmd, cmd);
+        /* Use the ORIGINAL guest path (cmd[0]), not translated_cmd.
+         * execv() wraps the execve() syscall which proot intercepts
+         * on ENTER and rewrites the path argument. If we pass the
+         * already-translated host path here, proot translates it a
+         * SECOND time → /rootfs/rootfs/bin/bash → ENOENT.
+         * By passing the guest path, proot translates it exactly once. */
+        execv(cmd[0], cmd);
         perror("execv");
         _exit(127);
     }

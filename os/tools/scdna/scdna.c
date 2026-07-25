@@ -1,6 +1,6 @@
 /*
  * SyscallDNA — Markov-Chain Behavioral Fingerprinter
- * PhantomSec OS v2.5.4 | Written in C
+ * PhantomSec OS v2.5.5 | Written in C
  *
  * UNIQUE TOOL: No existing open-source tool builds Markov chain transition
  * matrices from live ptrace syscall traces to fingerprint process behavior.

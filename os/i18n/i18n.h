@@ -79,7 +79,7 @@ static inline void ps_print_banner(const char *tool_name, const char *tool_desc)
         " ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚══╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝\n"
         PS_RESET
     );
-    printf(PS_DIM " %s — PhantomSec OS v2.5.4\n\n" PS_RESET, I18N_BUILT_WITH);
+    printf(PS_DIM " %s — PhantomSec OS v2.5.5\n\n" PS_RESET, I18N_BUILT_WITH);
     printf(PS_BOLD " %s" PS_RESET " — " PS_GRAY "%s\n\n" PS_RESET, tool_name, tool_desc);
 }
 

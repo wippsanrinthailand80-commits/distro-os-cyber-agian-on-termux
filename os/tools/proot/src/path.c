@@ -20,34 +20,41 @@
  * Does NOT resolve symlinks. */
 static void path_normalize(char *path)
 {
-    /* tokenise by '/', rebuild into buf */
+    /* Tokenise by '/' and rebuild into buf.
+     * We store segment start pointers and lengths WITHOUT modifying the
+     * input string — the old code did seg[nseg-1][len]='\0' which
+     * corrupted the path and caused "/bin/echo" → "/bin". */
     char  buf[PP_MAX_PATH];
-    char *seg[PP_MAX_PATH / 2];
+    const char *seg_start[PP_MAX_PATH / 2];
+    int         seg_len[PP_MAX_PATH / 2];
     int   nseg = 0;
 
-    char *p = path;
+    const char *p = path;
     while (*p) {
         while (*p == '/') p++;
         if (!*p) break;
-        char *end = p;
+        const char *end = p;
         while (*end && *end != '/') end++;
         size_t len = (size_t)(end - p);
         if (len == 1 && p[0] == '.') {
-            /* skip */
+            /* skip dot */
         } else if (len == 2 && p[0] == '.' && p[1] == '.') {
             if (nseg > 0) nseg--;
         } else {
-            seg[nseg++] = p;
-            seg[nseg - 1][len] = '\0'; /* temporarily terminate */
+            seg_start[nseg] = p;
+            seg_len[nseg]   = (int)len;
+            nseg++;
         }
         p = end;
     }
 
-    /* reassemble */
+    /* reassemble — use strncat to avoid depending on NUL in source */
     buf[0] = '\0';
     for (int i = 0; i < nseg; i++) {
-        strcat(buf, "/");
-        strcat(buf, seg[i]);
+        size_t curlen = strlen(buf);
+        buf[curlen]     = '/';
+        buf[curlen + 1] = '\0';
+        strncat(buf, seg_start[i], (size_t)seg_len[i]);
     }
     if (buf[0] == '\0') strcpy(buf, "/");
     strcpy(path, buf);
