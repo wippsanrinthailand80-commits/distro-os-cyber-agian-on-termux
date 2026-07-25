@@ -77,11 +77,21 @@ BLINK='\033[5m'  UL='\033[4m'     NC='\033[0m'
 # ── Active theme (loaded from config) ────────────────────────────────────────
 THEME_FILE="$PHANTOMSEC_DIR/theme"
 THEME="$(cat "$THEME_FILE" 2>/dev/null || echo 'phantom')"
+# Validate theme against whitelist to prevent source injection
+case "$THEME" in
+  phantom|matrix|blood|stealth) ;;
+  *) THEME="phantom" ;;
+esac
 source "$SCRIPT_DIR/themes/${THEME}.sh" 2>/dev/null || true
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 log() { echo "[$(date '+%T')] $*" >> "$LOG_DIR/session_$(date +%Y%m%d).log"; }
 press_enter() { echo -e "\n${DIM}  $(_t ENTER)${NC}"; read -r; }
+
+# Sanitize target for use in curl commands — strip shell metacharacters
+sanitize_target() {
+  echo "$1" | sed 's/[`$(){};|&<>!]//g' | tr -d "'\""
+}
 
 draw_line() {
   local char="${1:-═}" len="${2:-70}"
@@ -210,7 +220,7 @@ menu_osint() {
          echo | openssl s_client -connect "$T:443" 2>/dev/null | \
            openssl x509 -noout -text 2>/dev/null | grep -E "Subject:|Issuer:|Not Before|Not After|DNS:" | head -20 ;;
        6) T=$(prompt_target "IP/Domain")
-         GEOIP_RESULT=$(curl -s "http://ip-api.com/json/$T" 2>/dev/null)
+         GEOIP_RESULT=$(curl -s --max-time 10 "https://ip-api.com/json/$T" 2>/dev/null)
          if [ -n "$GEOIP_RESULT" ]; then
            echo "$GEOIP_RESULT" | jq . 2>/dev/null || \
            echo "$GEOIP_RESULT" | python3 -c "

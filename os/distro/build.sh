@@ -23,6 +23,15 @@ BUSYBOX_VERSION="1.36.1"
 MUSL_VERSION="1.2.5"
 NJOBS=$(nproc)
 
+# Cleanup trap for build directory
+cleanup_build() {
+  if [ -d "$BUILD_DIR" ]; then
+    echo -e "${Y}[!] Cleaning up build directory: $BUILD_DIR${NC}"
+    rm -rf "$BUILD_DIR"
+  fi
+}
+trap cleanup_build EXIT
+
 # Colors
 R="\033[0;31m" G="\033[0;32m" Y="\033[1;33m" C="\033[0;36m" NC="\033[0m"
 

@@ -229,6 +229,7 @@ static void ip_to_str(uint32_t ip, char *buf, size_t blen) {
     struct in_addr a;
     a.s_addr = ip;
     strncpy(buf, inet_ntoa(a), blen-1);
+    buf[blen-1] = '\0';
 }
 
 static void mac_to_str(const uint8_t *mac, char *buf) {

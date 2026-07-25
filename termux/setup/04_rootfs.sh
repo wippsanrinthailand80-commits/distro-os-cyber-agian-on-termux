@@ -57,7 +57,7 @@ else
       fi
 
       # Check it's actually a tar archive
-      if ! tar -tzf "$ROOTFS_TAR" >/dev/null 2>&1 | head -1 >/dev/null; then
+      if ! tar -tzf "$ROOTFS_TAR" >/dev/null 2>&1; then
         warn "Not a valid tar.gz archive"
         rm -f "$ROOTFS_TAR"
         continue

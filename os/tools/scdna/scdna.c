@@ -303,7 +303,10 @@ int main(int argc, char *argv[]) {
         fclose(cf);
         size_t l = strlen(profile->procname);
         if (l > 0 && profile->procname[l-1] == '\n') profile->procname[l-1] = '\0';
-    } else strncpy(profile->procname, "unknown", 7);
+    } else {
+        strncpy(profile->procname, "unknown", 7);
+        profile->procname[7] = '\0';
+    }
 
     long prev_syscall = -1;
     uint64_t captured = 0;

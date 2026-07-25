@@ -126,8 +126,10 @@ static double file_entropy_quick(const char *path) {
 /* Build the colorized prompt */
 static void build_prompt(char *buf, size_t blen) {
     /* Update CWD */
-    if (getcwd(g_cwd, sizeof(g_cwd)) == NULL)
+    if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
         strncpy(g_cwd, "?", sizeof(g_cwd)-1);
+        g_cwd[sizeof(g_cwd)-1] = '\0';
+    }
 
     /* Shorten home directory */
     const char *home = getenv("HOME");

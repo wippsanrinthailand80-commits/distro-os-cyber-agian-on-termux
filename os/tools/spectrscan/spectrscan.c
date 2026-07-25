@@ -297,6 +297,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    /* Seed PRNG with /dev/urandom for cryptographic quality */
+    {
+        unsigned int seed = 0;
+        FILE *ur = fopen("/dev/urandom", "rb");
+        if (ur) { fread(&seed, sizeof(seed), 1, ur); fclose(ur); }
+        else seed = (unsigned int)time(NULL);
+        srand(seed);
+    }
+
     char target_ip_str[64] = {0};
     int  port_start = 1, port_end = 1024;
     uint16_t sport = (uint16_t)(1024 + (rand() % 60000));

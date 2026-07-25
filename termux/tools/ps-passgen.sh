@@ -2,6 +2,8 @@
 # PhantomSec Termux — Password Generator
 # Usage: ps-passgen [length] [count] [charset]
 
+set -euo pipefail
+
 LENGTH="${1:-16}"
 COUNT="${2:-5}"
 CHARSET="${3:-alphanumeric}"
@@ -28,7 +30,9 @@ echo "  Entropy: ~${ENTROPY:-?} bits\n"
 for i in $(seq 1 "$COUNT"); do
   pass=""
   for j in $(seq 1 "$LENGTH"); do
-    idx=$(($RANDOM % CSIZE))
+    # Use /dev/urandom for cryptographically secure randomness
+    idx=$(od -An -tu2 -N2 /dev/urandom | tr -d ' ')
+    idx=$((idx % CSIZE))
     pass="${pass}${chars:$idx:1}"
   done
   echo "  $i: $pass"
