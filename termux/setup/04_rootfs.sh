@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 # 04_rootfs.sh — Build custom minimal rootfs with busybox
 # PhantomSec OS Termux Edition v2.8.0
-#
-# Builds a ~5MB rootfs from static busybox + skeleton files.
-# No Ubuntu download, no external distro dependency.
 
 set -euo pipefail
 source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
@@ -29,66 +26,81 @@ mkdir -p "$ROOTFS_DIR"/{proc,dev,sys,tmp,var/tmp,root,home/phantom}
 BB_BIN="$ROOTFS_DIR/bin/busybox"
 ARCH="$(uname -m)"
 
-download_busybox() {
-  local url="$1" label="$2"
-  log "Trying $label..."
-  if curl -fsSL "$url" -o "$BB_BIN" 2>/dev/null && chmod +x "$BB_BIN" && \
-     "$BB_BIN" --list >/dev/null 2>&1; then
-    return 0
-  fi
-  rm -f "$BB_BIN"
-  return 1
-}
-
-build_busybox_static() {
-  log "Building busybox from source (static)..."
-  local src="/tmp/busybox-src"
-  rm -rf "$src"
-  curl -fsSL "https://busybox.net/downloads/busybox-1.36.1.tar.bz2" -o /tmp/bb.tar.bz2 || return 1
-  tar xjf /tmp/bb.tar.bz2 -C /tmp 2>/dev/null
-  mv /tmp/busybox-1.36.1 "$src" 2>/dev/null
-  rm -f /tmp/bb.tar.bz2
-  [ -d "$src" ] || return 1
-
-  make -C "$src" CC=clang defconfig 2>/dev/null
-  make -C "$src" CC=clang \
-    EXTRA_CFLAGS="-static" LDFLAGS="-static" \
-    -j"$(nproc)" 2>/dev/null | tail -2
-  cp "$src/busybox" "$BB_BIN"
-  rm -rf "$src"
+get_busybox() {
+  local url="$1"
+  log "Downloading busybox static ($url)..."
+  curl -fsSL --connect-timeout 10 --max-time 60 "$url" -o "$BB_BIN" 2>/dev/null
+  chmod +x "$BB_BIN"
+  "$BB_BIN" --list >/dev/null 2>&1
 }
 
 if [ -x "$BB_BIN" ]; then
   info "busybox already present."
 else
-  # Try pre-built static binaries first (fast), then compile (slow)
-  if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-    download_busybox "https://busybox.net/downloads/binaries/1.35.0-aarch64-linux-musl/busybox" "busybox.net aarch64" ||
-    download_busybox "https://raw.githubusercontent.com/nicholasgasior/busybox-static/master/busybox-aarch64" "github nicholasgasior" ||
-    build_busybox_static ||
-    err "Failed to get busybox. Check your internet connection."
-  elif [ "$ARCH" = "x86_64" ]; then
-    download_busybox "https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox" "busybox.net x86_64" ||
-    build_busybox_static ||
-    err "Failed to get busybox."
-  else
-    build_busybox_static || err "Failed to build busybox for $ARCH."
+  GOT_BB=0
+
+  # Source 1: Alpine Linux package (guaranteed static musl binary)
+  if [ "$GOT_BB" -eq 0 ]; then
+    ALPINE_VER="3.20"
+    case "$ARCH" in
+      aarch64|arm64) ALPINE_ARCH="aarch64" ;;
+      x86_64)        ALPINE_ARCH="x86_64" ;;
+      armv7l)        ALPINE_ARCH="armv7" ;;
+      *)             ALPINE_ARCH="x86_64" ;;
+    esac
+    APK_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VER}/main/${ALPINE_ARCH}/busybox-static-1.36.1-r31.apk"
+    if curl -fsSL --connect-timeout 10 --max-time 60 "$APK_URL" -o /tmp/busybox.apk 2>/dev/null; then
+      # .apk files are just tar.gz — extract busybox from it
+      tar xzf /tmp/busybox.apk -C /tmp 2>/dev/null
+      # Alpine names it busybox.static
+      if [ -f /tmp/bin/busybox.static ]; then
+        cp /tmp/bin/busybox.static "$BB_BIN"
+        chmod +x "$BB_BIN"
+        GOT_BB=1
+        ok "Got busybox from Alpine Linux."
+      fi
+      rm -rf /tmp/bin /tmp/busybox.apk
+    fi
   fi
+
+  # Source 2: busybox.net pre-built
+  if [ "$GOT_BB" -eq 0 ]; then
+    BB_VER="1.36.1"
+    case "$ARCH" in
+      aarch64|arm64) URL="https://busybox.net/downloads/binaries/${BB_VER}-aarch64-linux-musl/busybox" ;;
+      x86_64)        URL="https://busybox.net/downloads/binaries/${BB_VER}-x86_64-linux-musl/busybox" ;;
+    esac
+    if [ -n "${URL:-}" ] && get_busybox "$URL"; then
+      GOT_BB=1
+      ok "Got busybox from busybox.net."
+    fi
+  fi
+
+  # Source 3: Termux package (fallback — may be dynamic)
+  if [ "$GOT_BB" -eq 0 ]; then
+    warn "Trying Termux busybox package (may not work inside rootfs)..."
+    pkg install -y busybox 2>/dev/null || true
+    if command -v busybox &>/dev/null; then
+      cp "$(command -v busybox)" "$BB_BIN"
+      chmod +x "$BB_BIN"
+      GOT_BB=1
+    fi
+  fi
+
+  [ "$GOT_BB" -eq 1 ] || err "Failed to get busybox from all sources.\nCheck your internet connection and try again."
 fi
 
-# ── Verify binary works ───────────────────────────────────────────────────
+# ── Verify ──────────────────────────────────────────────────────────────────
 if ! "$BB_BIN" sh -c 'echo ok' 2>/dev/null | grep -q ok; then
-  err "busybox binary is broken. Try: file $BB_BIN"
+  err "busybox binary is broken: file $BB_BIN"
 fi
 
-# ── Create symlinks for all applets ────────────────────────────────────────
+# ── Create symlinks ────────────────────────────────────────────────────────
 log "Creating busybox applets..."
 cd "$ROOTFS_DIR/bin"
 for applet in $($BB_BIN --list 2>/dev/null); do
   [ -e "$applet" ] || ln -sf busybox "$applet"
 done
-
-# usr/bin symlink for PATH compatibility
 for applet in $($BB_BIN --list 2>/dev/null); do
   [ -e "$ROOTFS_DIR/usr/bin/$applet" ] || \
     ln -sf ../../bin/busybox "$ROOTFS_DIR/usr/bin/$applet" 2>/dev/null || true
