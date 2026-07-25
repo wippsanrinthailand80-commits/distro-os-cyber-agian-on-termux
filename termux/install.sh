@@ -132,11 +132,23 @@ _proot_run() {
     -- "$@"
 }
 
+log "Setting up APT sources (enabling main + universe for ARM64)..."
+# Ubuntu minimal cloudimg มักไม่มี universe เปิดไว้ — เขียน sources.list ใหม่ให้ครบ
+_proot_run bash -c "
+  cat > /etc/apt/sources.list << 'APT_SOURCES'
+deb http://ports.ubuntu.com/ubuntu-ports jammy           main restricted universe multiverse
+deb http://ports.ubuntu.com/ubuntu-ports jammy-updates   main restricted universe multiverse
+deb http://ports.ubuntu.com/ubuntu-ports jammy-security  main restricted universe multiverse
+APT_SOURCES
+  echo 'APT::Get::Assume-Yes \"true\";' > /etc/apt/apt.conf.d/99phantomsec
+  echo 'APT::Install-Recommends \"false\";' >> /etc/apt/apt.conf.d/99phantomsec
+"
+
 log "Installing build tools inside Ubuntu rootfs..."
 _proot_run bash -c "
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y -q gcc make libm-dev 2>&1 | tail -5
+  apt-get install -y gcc make 2>&1 | tail -5
 "
 
 log "Compiling PhantomSec OS tools from source inside rootfs..."
