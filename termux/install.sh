@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec OS — Termux Edition v2.5.5                          ║
-# ║          phantom-proot installer — modular setup                        ║
+# ║          PhantomSec OS — Termux Edition v2.8.0 Beta                     ║
+# ║          Custom proot · No distro needed · ARM64 native                 ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 # One-line install:
 #   bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/termux/install.sh)
 
 set -euo pipefail
 
-G='\033[0;32m' Y='\033[1;33m' C='\033[0;36m' R='\033[0;31m' NC='\033[0m' BOLD='\033[1m' DIM='\033[2m'
+VERSION="2.8.0"
+
+G='\033[0;32m' Y='\033[1;33m' C='\033[0;36m' R='\033[0;31m' NC='\033[0m' B='\033[1m' D='\033[2m'
 
 err()  { echo -e "${R}[✗]${NC} $*"; exit 1; }
 log()  { echo -e "${G}[+]${NC} $*"; }
@@ -16,7 +18,8 @@ ok()   { echo -e "${G}[✓]${NC} $*"; }
 
 RAW_URL="https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main"
 
-STEPS=(
+# ── Setup scripts (run in order) ───────────────────────────────────────────
+SETUP_SCRIPTS=(
   "_common.sh"
   "00_check.sh"
   "01_deps.sh"
@@ -28,8 +31,9 @@ STEPS=(
   "07_launchers.sh"
 )
 
+# ── Banner ──────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${C}${BOLD}"
+echo -e "${C}${B}"
 cat << 'BANNER'
   ██████╗ ██╗  ██╗ █████╗ ███╗  ██╗████████╗ ██████╗ ███╗  ███╗
   ██╔══██╗██║  ██║██╔══██╗████╗ ██║╚══██╔══╝██╔═══██╗████╗████║
@@ -39,24 +43,21 @@ cat << 'BANNER'
   ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚══╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝
 BANNER
 echo -e "${NC}"
-echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.5.5${NC}"
-echo -e "${DIM}  phantom-proot: built from scratch in C | no root | no proot-distro${NC}\n"
+echo -e "${C}${B}  PhantomSec OS — Termux Edition v${VERSION} Beta${NC}"
+echo -e "${D}  Custom proot · No distro downloads · ARM64 native · ~5MB rootfs${NC}"
+echo -e "${D}  Built with Termux clang from scratch — no proot-distro, no Ubuntu${NC}\n"
 
-# ── Stage all setup scripts into a temp directory ─────────────────────────────
-# We MUST download everything to real files before running —
-# bash <(curl ...) sets $0 to /proc/self/fd/N so dirname is useless in sub-scripts.
-
+# ── Stage scripts into temp directory ──────────────────────────────────────
 SETUP_TMP="$(mktemp -d "${TMPDIR:-/tmp}/phantomsec-setup.XXXXXX")"
 trap 'rm -rf "$SETUP_TMP"' EXIT
 
-# Detect if we are running from a real cloned repo (not a pipe)
 SELF_DIR=""
 if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" != "/proc/self/fd/"* ]]; then
   SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup"
 fi
 
-log "Staging setup scripts to $SETUP_TMP ..."
-for SCRIPT in "${STEPS[@]}"; do
+log "Staging setup scripts..."
+for SCRIPT in "${SETUP_SCRIPTS[@]}"; do
   DEST="$SETUP_TMP/$SCRIPT"
   if [ -n "$SELF_DIR" ] && [ -f "$SELF_DIR/$SCRIPT" ]; then
     cp "$SELF_DIR/$SCRIPT" "$DEST"
@@ -68,11 +69,9 @@ for SCRIPT in "${STEPS[@]}"; do
 done
 ok "Scripts staged."
 
-# Export the _common.sh path so every sub-script can source it reliably
-# without relying on dirname or $0 (which break in bash pipe mode)
 export PHANTOMSEC_COMMON="$SETUP_TMP/_common.sh"
 
-# ── Run each step ─────────────────────────────────────────────────────────────
+# ── Run each step ──────────────────────────────────────────────────────────
 RUN_STEPS=(
   "00_check.sh"
   "01_deps.sh"
@@ -89,32 +88,30 @@ for SCRIPT in "${RUN_STEPS[@]}"; do
     || err "Setup step failed: $SCRIPT\nSee output above for details."
 done
 
-# ── Done ─────────────────────────────────────────────────────────────────────
-LOCAL_BIN="$HOME/.local/bin"
-
+# ── Done ───────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${C}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.5.5 ready!${NC}"
-echo -e "${C}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${C}${B}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${C}${B}  PhantomSec OS v${VERSION} Beta — Ready!${NC}"
+echo -e "${C}${B}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "  ${G}Enter full environment:${NC}  ${BOLD}phantomsec-os${NC}"
+echo -e "  ${G}Enter with menu:${NC}    ${B}phantomsec-os${NC}"
 echo ""
 echo -e "  ${G}Run tools directly:${NC}"
-echo -e "     ${BOLD}ps-psh${NC}         PhantomSec Shell"
-echo -e "     ${BOLD}ps-netghost${NC}    Network Ghost"
-echo -e "     ${BOLD}ps-spectrscan${NC}  Spectrum Scanner"
-echo -e "     ${BOLD}ps-scdna${NC}       SC-DNA"
-echo -e "     ${BOLD}ps-entropyd${NC}    Entropy Daemon"
-echo -e "     ${BOLD}ps-passgen${NC}     Password Generator"
-echo -e "     ${BOLD}ps-hashcheck${NC}   Hash Identifier"
-echo -e "     ${BOLD}ps-vulnscan${NC}    Vulnerability Scanner"
-echo -e "     ${BOLD}ps-portscan${NC}    Port Scanner"
-echo -e "     ${BOLD}ps-revshell${NC}    Reverse Shell Generator"
+echo -e "     ${B}ps-psh${NC}          PhantomSec Shell"
+echo -e "     ${B}ps-netghost${NC}     Network Ghost"
+echo -e "     ${B}ps-spectrscan${NC}   SpecterScan"
+echo -e "     ${B}ps-scdna${NC}        SyscallDNA"
+echo -e "     ${B}ps-entropyd${NC}     Entropy Daemon"
+echo -e "     ${B}ps-passgen${NC}      Password Generator"
+echo -e "     ${B}ps-hashcheck${NC}    Hash Identifier"
+echo -e "     ${B}ps-vulnscan${NC}     Vulnerability Scanner"
+echo -e "     ${B}ps-portscan${NC}     Port Scanner"
+echo -e "     ${B}ps-revshell${NC}     Reverse Shell Generator"
 echo ""
-echo -e "  ${DIM}Compiled with Termux clang — no apt-get inside proot needed.${NC}"
-echo -e "  ${DIM}Powered by phantom-proot (100% from scratch, no proot-distro).${NC}"
+echo -e "  ${D}Custom proot built from C source — no third-party dependencies.${NC}"
+echo -e "  ${D}Minimal busybox rootfs — no Ubuntu download, ~5MB total.${NC}"
 echo ""
-echo -e "  ${Y}Restart shell or run:  source ~/.bashrc${NC}"
+echo -e "  ${Y}Restart your shell or run:  source ~/.bashrc${NC}"
 echo -e "  ${Y}For authorized security testing and educational use only.${NC}"
 echo -e "  ${Y}ใช้เพื่อการศึกษาและการทดสอบที่ได้รับอนุญาตเท่านั้น${NC}"
 echo ""

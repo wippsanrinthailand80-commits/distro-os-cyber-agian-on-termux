@@ -1,3 +1,4 @@
 os/bin/
 os/tools/proot/proot
 os/tools/proot/src/*.o
+os/tools/proot/src/phantom-proot

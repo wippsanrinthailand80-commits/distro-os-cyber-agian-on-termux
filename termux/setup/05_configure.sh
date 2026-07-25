@@ -1,56 +1,63 @@
 #!/usr/bin/env bash
-# 05_configure.sh — Configure rootfs basics
-# PhantomSec phantom-proot installer — Step 5
+# 05_configure.sh — Configure the rootfs
+# PhantomSec OS Termux Edition v2.8.0
 
 set -euo pipefail
 source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
-step "Step 5 — Configure rootfs"
+step "Step 5 — Configure Rootfs"
 
-# Sanity check — rootfs must exist after step 4
-[ -d "$ROOTFS_DIR/bin" ] || err "Rootfs not found at $ROOTFS_DIR\nDid step 4 (rootfs download) succeed?"
+[ -d "$ROOTFS_DIR/bin" ] || err "Rootfs not found at $ROOTFS_DIR"
 
-# Essential mount-point directories (list form avoids brace-expansion quoting pitfalls)
-for d in proc dev sys tmp run root; do
-  mkdir -p "$ROOTFS_DIR/$d"
-done
+# ── Ensure /proc /dev /sys mount points exist ──────────────────────────────
+mkdir -p "$ROOTFS_DIR"/{proc,dev,sys,tmp,var/tmp,root}
 
-# DNS
-cat > "$ROOTFS_DIR/etc/resolv.conf" << 'DNS'
-nameserver 8.8.8.8
-nameserver 1.1.1.1
-DNS
-
-# Hostname
+# ── Set hostname ────────────────────────────────────────────────────────────
 echo "phantomsec" > "$ROOTFS_DIR/etc/hostname"
 
-# /etc/hosts
-cat > "$ROOTFS_DIR/etc/hosts" << 'HOSTS'
-127.0.0.1   localhost
-127.0.1.1   phantomsec
-::1         localhost ip6-localhost ip6-loopback
-HOSTS
+# ── DNS resolution ──────────────────────────────────────────────────────────
+cat > "$ROOTFS_DIR/etc/resolv.conf" << 'EOF'
+nameserver 8.8.8.8
+nameserver 1.1.1.1
+nameserver 208.67.222.222
+EOF
 
-# APT sources — detect architecture for correct mirror
-ARCH="$(uname -m)"
-if [ "$ARCH" = "x86_64" ]; then
-  APT_MIRROR="https://archive.ubuntu.com/ubuntu"
-else
-  APT_MIRROR="https://ports.ubuntu.com/ubuntu-ports"
-fi
+# ── /etc/hosts ──────────────────────────────────────────────────────────────
+cat > "$ROOTFS_DIR/etc/hosts" << 'EOF'
+127.0.0.1 localhost phantomsec
+::1       localhost phantomsec
+EOF
 
-cat > "$ROOTFS_DIR/etc/apt/sources.list" << SOURCES
-deb ${APT_MIRROR} jammy           main restricted universe multiverse
-deb ${APT_MIRROR} jammy-updates   main restricted universe multiverse
-deb ${APT_MIRROR} jammy-security  main restricted universe multiverse
-SOURCES
+# ── /etc/passwd ─────────────────────────────────────────────────────────────
+cat > "$ROOTFS_DIR/etc/passwd" << 'EOF'
+root:x:0:0:root:/root:/bin/sh
+phantom:x:1000:1000:phantom:/home/phantom:/bin/sh
+EOF
 
-# APT options: non-interactive, no recommends
-mkdir -p "$ROOTFS_DIR/etc/apt/apt.conf.d"
-cat > "$ROOTFS_DIR/etc/apt/apt.conf.d/99phantomsec" << 'APTCONF'
-APT::Get::Assume-Yes "true";
-APT::Install-Recommends "false";
-APT::Install-Suggests "false";
-APTCONF
+# ── /etc/group ──────────────────────────────────────────────────────────────
+cat > "$ROOTFS_DIR/etc/group" << 'EOF'
+root:x:0:
+phantom:x:1000:
+EOF
 
-ok "Rootfs configured (DNS, hostname, hosts, apt sources)."
+# ── /etc/profile — login environment ───────────────────────────────────────
+cat > "$ROOTFS_DIR/etc/profile" << 'PROFILE'
+export HOME=/home/phantom
+export PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
+export TERM=xterm-256color
+export LANG=C.UTF-8
+export USER=phantom
+export LOGNAME=phantom
+
+# PhantomSec prompt
+PS1='\[\033[1;32m\]phantom\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
+export PS1
+PROFILE
+
+# ── User home directory ─────────────────────────────────────────────────────
+mkdir -p "$ROOTFS_DIR/home/phantom"
+cat > "$ROOTFS_DIR/home/phantom/.profile" << 'EOF'
+. /etc/profile
+EOF
+
+ok "Rootfs configured."

@@ -1,38 +1,31 @@
 #!/usr/bin/env bash
-# 02_clone.sh — Clone or update PhantomSec repo
-# PhantomSec phantom-proot installer — Step 2
+# 02_clone.sh — Fetch or update the PhantomSec repo
+# PhantomSec OS Termux Edition v2.8.0
 
 set -euo pipefail
 source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
-step "Step 2 — PhantomSec source"
+step "Step 2 — Fetch Source"
 
-_do_clone() {
-  # Remove -q so git errors are visible
-  log "Cloning PhantomSec OS (this may take a moment)..."
-  if git clone --depth=1 "$REPO_URL" "$INSTALL_DIR"; then
-    ok "Cloned → $INSTALL_DIR"
-  else
-    warn "depth=1 clone failed — retrying without --depth (slower but more reliable)..."
-    rm -rf "$INSTALL_DIR"
-    git clone "$REPO_URL" "$INSTALL_DIR" \
-      || err "git clone failed.\nCheck: internet connection, github.com reachable, ca-certificates installed.\nTry: pkg install ca-certificates"
-    ok "Cloned → $INSTALL_DIR"
-  fi
-}
+ensure_dir "$LOCAL_BIN"
 
 if [ -d "$INSTALL_DIR/.git" ]; then
-  warn "Repo exists — pulling latest..."
-  git -C "$INSTALL_DIR" pull --ff-only \
-    || { warn "Fast-forward failed — resetting to origin/main..."; \
-         git -C "$INSTALL_DIR" fetch origin && \
-         git -C "$INSTALL_DIR" reset --hard origin/main; }
-  ok "Updated → $INSTALL_DIR"
-elif [ -d "$INSTALL_DIR" ]; then
-  # Directory exists but is NOT a git repo (partial/failed prev install)
-  warn "$INSTALL_DIR exists but is not a git repo — removing and re-cloning..."
-  rm -rf "$INSTALL_DIR"
-  _do_clone
+  log "Updating existing repo at $INSTALL_DIR..."
+  git -C "$INSTALL_DIR" pull --ff-only 2>/dev/null || {
+    warn "Pull failed — force resetting to origin/main..."
+    git -C "$INSTALL_DIR" fetch origin main
+    git -C "$INSTALL_DIR" reset --hard origin/main
+  }
+  ok "Repo updated."
 else
-  _do_clone
+  log "Cloning repo to $INSTALL_DIR..."
+  rm -rf "$INSTALL_DIR"
+  git clone --depth 1 "$REPO_URL" "$INSTALL_DIR" 2>&1 | tail -1
+  ok "Repo cloned."
 fi
+
+# ── Verify critical paths ──────────────────────────────────────────────────
+[ -d "$INSTALL_DIR/os/tools" ] || err "Source tree incomplete — os/tools/ missing."
+[ -d "$INSTALL_DIR/termux" ]   || err "Source tree incomplete — termux/ missing."
+
+ok "Source ready at $INSTALL_DIR"

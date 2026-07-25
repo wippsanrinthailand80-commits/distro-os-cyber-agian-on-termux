@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# PhantomSec Termux — Vulnerability Scanner
+# PhantomSec — Web Vulnerability Scanner
 # Usage: ps-vulnscan <target>
 
 TARGET="${1:-}"
-[ -z "$TARGET" ] && { echo "Usage: $0 <url>"; exit 1; }
+[ -z "$TARGET" ] && { echo "Usage: $0 <url or domain>"; exit 1; }
 
 G='\033[0;32m' C='\033[0;36m' NC='\033[0m' R='\033[0;31m' Y='\033[1;33m'
 
-echo -e "\n${G}[+] Vulnerability Scan: ${C}$TARGET${NC}\n"
+echo -e "\n${G}[+] Vulnerability Scan: ${C}${TARGET}${NC}\n"
 
-# Check common paths
 echo -e "${G}[*] Directory discovery:${NC}"
-for path in /admin /wp-admin /wp-login.php /phpmyadmin /.env /.git/config /robots.txt /sitemap.xml /server-status /server-info /phpinfo.php /cgi-bin/ /backup /config /database /db /sql /test /debug /api /console /panel; do
+for path in /admin /wp-admin /wp-login.php /phpmyadmin /.env /.git/config /robots.txt /sitemap.xml /server-status /server-info /phpinfo.php /cgi-bin/ /backup /config /database /test /debug /api /console /panel; do
   code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://$TARGET$path" 2>/dev/null)
   if [ "$code" != "000" ] && [ "$code" != "404" ]; then
     color="$Y"

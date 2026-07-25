@@ -1,29 +1,33 @@
 #!/usr/bin/env bash
-# 01_deps.sh — Install Termux build dependencies
-# PhantomSec phantom-proot installer — Step 1
+# 01_deps.sh — Install minimal Termux dependencies
+# PhantomSec OS Termux Edition v2.8.0
 
 set -euo pipefail
 source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
-step "Step 1 — Termux dependencies"
+step "Step 1 — Dependencies"
 
-log "Updating Termux package lists..."
-pkg update -y -q
+# ── Update package repos ───────────────────────────────────────────────────
+log "Updating package repos..."
+pkg update -y -o Dpkg::Options::="--force-confdef" 2>/dev/null || pkg update -y || true
 
-log "Installing: ca-certificates clang make git curl tar wget openssl..."
-# ca-certificates — required for git clone via HTTPS (SSL verification)
-# clang = C compiler on Termux (no gcc needed — clang builds everything)
-# openssl — required by hashcheck tool (OpenSSL EVP API)
-pkg install -y ca-certificates clang make git curl tar wget openssl
+# ── Required: build tools ──────────────────────────────────────────────────
+DEPS="clang make git wget curl"
+MISSING=""
+for dep in $DEPS; do
+  command -v "$dep" &>/dev/null || MISSING="$MISSING $dep"
+done
 
-# Verify git can reach GitHub via HTTPS
-log "Verifying HTTPS connectivity to GitHub..."
-if curl -fsSL --max-time 10 -o /dev/null -w "%{http_code}" \
-    "https://github.com" 2>/dev/null | grep -q "^2\|^3"; then
-  ok "HTTPS to GitHub: OK"
+if [ -n "$MISSING" ]; then
+  log "Installing:$MISSING"
+  pkg install -y $MISSING 2>&1 | tail -1
 else
-  warn "Could not reach github.com — check your internet connection."
-  warn "The install will continue; git clone may fail if network is unavailable."
+  ok "All dependencies already installed."
 fi
 
-ok "All Termux dependencies installed."
+# ── Verify ──────────────────────────────────────────────────────────────────
+require_cmd clang clang
+require_cmd make make
+require_cmd git git
+
+ok "Dependencies ready."
