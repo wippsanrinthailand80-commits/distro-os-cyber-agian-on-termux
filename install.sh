@@ -15,7 +15,7 @@ warn() { echo -e "${Y}[!]${NC} $*"; }
 err()  { echo -e "${R}[✗]${NC} $*"; exit 1; }
 
 echo ""
-echo -e "${C}${BOLD}  PhantomSec — Distro Feel Edition v2.5.3${NC}"
+echo -e "${C}${BOLD}  PhantomSec — Distro Feel Edition v2.5.4${NC}"
 echo -e "${C}  Installing...${NC}\n"
 
 # Detect environment
