@@ -43,31 +43,36 @@ echo -e "${C}${BOLD}  PhantomSec OS — Termux Edition v2.2.0${NC}"
 echo -e "${DIM}  phantom-proot: built from scratch in C | no root | no proot-distro${NC}\n"
 
 # ── Stage all setup scripts into a temp directory ─────────────────────────────
-# Doing this first guarantees that sourcing _common.sh always works,
-# regardless of whether we are running from a clone or a curl pipe.
+# We MUST download everything to real files before running —
+# bash <(curl ...) sets $0 to /proc/self/fd/N so dirname is useless in sub-scripts.
 
 SETUP_TMP="$(mktemp -d /tmp/phantomsec-setup.XXXXXX)"
 trap 'rm -rf "$SETUP_TMP"' EXIT
 
-# Try to find scripts relative to THIS file first (clone / local run).
-# $BASH_SOURCE[0] is reliable even in sourced scripts; fall back to $0.
-SELF="${BASH_SOURCE[0]:-$0}"
-LOCAL_SETUP="$(cd "$(dirname "$SELF")" 2>/dev/null && pwd)/setup"
+# Detect if we are running from a real cloned repo (not a pipe)
+SELF_DIR=""
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ "${BASH_SOURCE[0]}" != "/proc/self/fd/"* ]; then
+  SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup"
+fi
 
-log "Staging setup scripts..."
+log "Staging setup scripts to $SETUP_TMP ..."
 for SCRIPT in "${STEPS[@]}"; do
   DEST="$SETUP_TMP/$SCRIPT"
-  if [ -f "$LOCAL_SETUP/$SCRIPT" ]; then
-    cp "$LOCAL_SETUP/$SCRIPT" "$DEST"
+  if [ -n "$SELF_DIR" ] && [ -f "$SELF_DIR/$SCRIPT" ]; then
+    cp "$SELF_DIR/$SCRIPT" "$DEST"
   else
     curl -fsSL "${RAW_URL}/termux/setup/${SCRIPT}" -o "$DEST" \
-      || err "Could not fetch setup script: $SCRIPT"
+      || err "Could not fetch: termux/setup/$SCRIPT"
   fi
   chmod +x "$DEST"
 done
-ok "All setup scripts staged → $SETUP_TMP"
+ok "Scripts staged."
 
-# ── Run each step in order ────────────────────────────────────────────────────
+# Export the _common.sh path so every sub-script can source it reliably
+# without relying on dirname or $0 (which break in bash pipe mode)
+export PHANTOMSEC_COMMON="$SETUP_TMP/_common.sh"
+
+# ── Run each step ─────────────────────────────────────────────────────────────
 RUN_STEPS=(
   "00_check.sh"
   "01_deps.sh"
@@ -81,7 +86,7 @@ RUN_STEPS=(
 
 for SCRIPT in "${RUN_STEPS[@]}"; do
   bash "$SETUP_TMP/$SCRIPT" \
-    || err "Setup step failed: $SCRIPT\nCheck the output above for details."
+    || err "Setup step failed: $SCRIPT\nSee output above for details."
 done
 
 # ── Done ─────────────────────────────────────────────────────────────────────
