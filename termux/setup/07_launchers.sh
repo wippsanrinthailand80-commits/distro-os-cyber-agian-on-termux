@@ -40,7 +40,7 @@ exec "\$PROOT" \\
   -b /sys:/sys      \\
   -b "\${HOME}:/root" \\
   -w /root          \\
-  -- /bin/bash --login
+  -- env HOME=/root /bin/bash --login
 LAUNCHER
 chmod +x "$LOCAL_BIN/phantomsec-os"
 ok "phantomsec-os → $LOCAL_BIN/phantomsec-os"
