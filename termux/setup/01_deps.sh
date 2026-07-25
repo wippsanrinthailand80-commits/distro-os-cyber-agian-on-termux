@@ -3,7 +3,7 @@
 # PhantomSec phantom-proot installer — Step 1
 
 set -euo pipefail
-source "$(dirname "$0")/_common.sh"
+source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 
 step "Step 1 — Termux dependencies"
 
