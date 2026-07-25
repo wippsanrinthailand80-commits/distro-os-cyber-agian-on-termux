@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec — Distro Feel Edition  v2.0.1                         ║
+# ║          PhantomSec — Distro Feel Edition  v2.5.0                         ║
 # ║          รองรับ Termux (Android) | macOS | Linux                        ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 # GitHub: https://github.com/wippsanrinthailand80-commits/phantomsec-distro-feel
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERSION="2.0.1"
+VERSION="2.5.0"
 PHANTOMSEC_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
 LOG_DIR="$PHANTOMSEC_DIR/logs"
 REPORT_DIR="$PHANTOMSEC_DIR/reports"
