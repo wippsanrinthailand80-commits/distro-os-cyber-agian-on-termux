@@ -26,7 +26,7 @@ all: $(TOOLS)
 	@echo "  ██║     ██║  ██║██║  ██║██║ ╚███║   ██║   ╚██████╔╝██║ ╚═╝ ██║"
 	@echo "  ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚══╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝"
 	@echo ""
-	@echo "  PhantomSec OS v2.5.2 — All tools built successfully"
+	@echo "  PhantomSec OS v2.5.3 — All tools built successfully"
 	@echo "  Run 'make install' to install to $(PREFIX)"
 	@echo ""
 

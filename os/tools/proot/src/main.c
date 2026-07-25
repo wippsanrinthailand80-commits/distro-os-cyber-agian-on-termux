@@ -28,7 +28,7 @@ static void usage(const char *argv0)
 {
     fprintf(stderr,
         "phantom-proot — PhantomSec user-space chroot via ptrace\n"
-        "Version: 1.0.0 | ARM64-primary | no root required\n"
+        "Version: 2.5.3 | ARM64-primary | no root required\n"
         "\n"
         "Usage:\n"
         "  %s -r <rootfs> [-b <host>:<guest>] ... -- <cmd> [args...]\n"
@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
     }
 
     char **cmd     = &argv[optind];
-    char  *cmd_path_host[PP_MAX_PATH];
 
     /* Translate the command path to a host path so the kernel can exec it */
     char translated_cmd[PP_MAX_PATH];
@@ -153,7 +152,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "[proot] cannot translate cmd path: %s\n", cmd[0]);
         return 1;
     }
-    (void)cmd_path_host; /* unused placeholder */
 
     fprintf(stderr,
             "[proot] phantom-proot starting\n"

@@ -1,6 +1,6 @@
 /*
  * SyscallDNA — Markov-Chain Behavioral Fingerprinter
- * PhantomSec OS v2.0 | Written in C
+ * PhantomSec OS v2.5.3 | Written in C
  *
  * UNIQUE TOOL: No existing open-source tool builds Markov chain transition
  * matrices from live ptrace syscall traces to fingerprint process behavior.
@@ -23,7 +23,6 @@
  *        ./scdna -p 1234 --compare /etc/phantomsec/profiles/sshd.dna
  */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -232,7 +231,6 @@ static void print_top_transitions(const dna_profile_t *profile, int top_n) {
 }
 
 static void print_usage(const char *prog) {
-    ps_print_banner(SD_TOOL_NAME, SD_DESC);
     printf(PS_BOLD "%s:" PS_RESET " %s [options]\n\n", I18N_USAGE, prog);
     printf(PS_BOLD "%s:\n" PS_RESET, I18N_OPTIONS);
     printf("  -p <pid>            Target PID to fingerprint\n");

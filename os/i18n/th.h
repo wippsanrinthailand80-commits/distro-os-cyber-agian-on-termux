@@ -8,7 +8,7 @@
 
 /* --- Common --- */
 #define I18N_BANNER        "PhantomSec OS"
-#define I18N_VERSION       "เวอร์ชัน 2.5.2"
+#define I18N_VERSION       "เวอร์ชัน 2.5.3"
 #define I18N_BUILT_WITH    "สร้างด้วย C/C++ ทั้งหมด — ตั้งแต่ศูนย์"
 #define I18N_USAGE         "วิธีใช้"
 #define I18N_OPTIONS       "ตัวเลือก"
@@ -105,7 +105,7 @@
 #define PSH_TOOL_NAME      "PhantomShell"
 #define PSH_DESC           "เชลล์ของ PhantomSec OS — รองรับสองภาษา, ตระหนักด้านความปลอดภัย"
 #define PSH_PROMPT_EN      "phantom"
-#define PSH_WELCOME        "PhantomSec OS — PhantomShell v2.5.2 [โหมดภาษาไทย]"
+#define PSH_WELCOME        "PhantomSec OS — PhantomShell v2.5.3 [โหมดภาษาไทย]"
 #define PSH_HELP_TITLE     "คำสั่งภายใน"
 #define PSH_CMD_HELP       "help          — แสดงความช่วยเหลือ"
 #define PSH_CMD_LANG       "lang [en|th]  — เปลี่ยนภาษา"

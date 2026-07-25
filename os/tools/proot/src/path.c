@@ -88,13 +88,19 @@ int path_translate(const char *root, const char *cwd,
         const char *rel = abs_guest + glen;
         if (*rel == '\0')
             snprintf(out, outsz, "%s", bind->host);
-        else
+        else {
+            if (strlen(bind->host) + strlen(rel) >= outsz)
+                return -1;
             snprintf(out, outsz, "%s%s", bind->host, rel);
+        }
         return 0;
     }
 
     /* --- standard: prepend root --- */
     /* guard against escaping the root with too many ".." */
+    if (strlen(root) + strlen(abs_guest) >= outsz) {
+        return -1;
+    }
     snprintf(out, outsz, "%s%s", root, abs_guest);
     return 0;
 }

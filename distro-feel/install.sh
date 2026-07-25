@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec — Distro Feel Edition v2.5.2                        ║
+# ║          PhantomSec — Distro Feel Edition v2.5.3                        ║
 # ║          Shell Toolkit Installer                                         ║
 # ║          Supports: Termux (Android) · Linux · macOS                     ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
@@ -22,7 +22,7 @@ err()  { echo -e "${R}[✗]${NC} $*"; exit 1; }
 ok()   { echo -e "${G}[✓]${NC} $*"; }
 
 echo ""
-echo -e "${C}${BOLD}  PhantomSec — Distro Feel Edition v2.5.2${NC}"
+echo -e "${C}${BOLD}  PhantomSec — Distro Feel Edition v2.5.3${NC}"
 echo -e "${C}  Shell Toolkit Installer${NC}"
 echo -e "${Y}  (Not a real OS — shell-based distro feel toolkit)${NC}\n"
 
@@ -64,6 +64,7 @@ mkdir -p "$INSTALL_DIR" "$BIN_DIR"
 cp -r "$DISTRO_FEEL_DIR/phantomsec.sh" "$INSTALL_DIR/"
 cp -r "$DISTRO_FEEL_DIR/modules" "$INSTALL_DIR/" 2>/dev/null || true
 cp -r "$DISTRO_FEEL_DIR/themes" "$INSTALL_DIR/" 2>/dev/null || true
+cp -r "$DISTRO_FEEL_DIR/wordlists" "$INSTALL_DIR/" 2>/dev/null || true
 chmod +x "$INSTALL_DIR/phantomsec.sh"
 chmod +x "$INSTALL_DIR/modules/"*.sh 2>/dev/null || true
 chmod +x "$INSTALL_DIR/themes/"*.sh  2>/dev/null || true
@@ -84,7 +85,7 @@ done
 
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${C}${BOLD}  PhantomSec Distro Feel v2.5.2 installed.${NC}"
+echo -e "${C}${BOLD}  PhantomSec Distro Feel v2.5.3 installed.${NC}"
 echo -e "  Run: ${G}phantomsec${NC}"
 echo -e "  Or:  ${G}bash ~/.phantomsec/phantomsec.sh${NC}"
 echo ""

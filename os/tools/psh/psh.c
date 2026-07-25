@@ -1,6 +1,6 @@
 /*
  * PhantomShell (psh) — PhantomSec OS Custom Shell
- * PhantomSec OS v2.0 | Written in C
+ * PhantomSec OS v2.5.3 | Written in C
  *
  * A purpose-built shell for PhantomSec OS with:
  *   - Bilingual interface (English / Thai) via PHANTOMSEC_LANG env var
@@ -10,12 +10,11 @@
  *   - Security-aware command history (secrets are not stored in history)
  *   - Customizable prompt with system info (user, host, cwd, threat level)
  *
- * Build: gcc -O2 -o psh psh.c -lreadline -lm
+ * Build: gcc -O2 -o psh psh.c -lm
  * Run:   ./psh
  *        PHANTOMSEC_LANG=th ./psh   # Thai mode
  */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +35,7 @@
 
 #include "../../i18n/i18n.h"
 
-#define PSH_VERSION      "2.5.2"
+#define PSH_VERSION      "2.5.3"
 #define PSH_MAX_LINE     4096
 #define PSH_MAX_ARGS     256
 #define PSH_MAX_HISTORY  1000
@@ -83,6 +82,7 @@ static void add_history(const char *line) {
 
     free(g_history[g_hist_pos].line);
     g_history[g_hist_pos].line = strdup(line);
+    if (!g_history[g_hist_pos].line) return;
     g_history[g_hist_pos].when = time(NULL);
     g_hist_pos = (g_hist_pos + 1) % PSH_MAX_HISTORY;
     if (g_hist_count < PSH_MAX_HISTORY) g_hist_count++;
@@ -351,6 +351,7 @@ int main(int argc, char *argv[]) {
         /* Tokenize */
         char linebuf[PSH_MAX_LINE];
         strncpy(linebuf, line, sizeof(linebuf)-1);
+        linebuf[sizeof(linebuf)-1] = '\0';
         char *argv2[PSH_MAX_ARGS];
         int argc2 = tokenize(linebuf, argv2, PSH_MAX_ARGS);
         if (argc2 == 0) continue;

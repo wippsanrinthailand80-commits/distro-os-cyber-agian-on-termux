@@ -7,7 +7,7 @@
 
 /* --- Common --- */
 #define I18N_BANNER        "PhantomSec OS"
-#define I18N_VERSION       "Version 2.5.2"
+#define I18N_VERSION       "Version 2.5.3"
 #define I18N_BUILT_WITH    "Built entirely in C/C++ — From Scratch"
 #define I18N_USAGE         "Usage"
 #define I18N_OPTIONS       "Options"
@@ -104,7 +104,7 @@
 #define PSH_TOOL_NAME      "PhantomShell"
 #define PSH_DESC           "PhantomSec OS custom shell — bilingual, security-aware"
 #define PSH_PROMPT_EN      "phantom"
-#define PSH_WELCOME        "PhantomSec OS — PhantomShell v2.5.2"
+#define PSH_WELCOME        "PhantomSec OS — PhantomShell v2.5.3"
 #define PSH_HELP_TITLE     "Built-in Commands"
 #define PSH_CMD_HELP       "help          — Show this help"
 #define PSH_CMD_LANG       "lang [en|th]  — Switch language"

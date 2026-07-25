@@ -1,6 +1,6 @@
 /*
  * NetGhost — Passive Network Topology Mapper
- * PhantomSec OS v2.0 | Written in C
+ * PhantomSec OS v2.5.3 | Written in C
  *
  * UNIQUE TOOL: NetGhost reconstructs the full network topology (hosts, routers,
  * subnets, routing paths, AS boundaries) by sniffing existing traffic only.
@@ -28,7 +28,6 @@
  * Run:   sudo ./netghost -i eth0 -t 60
  */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -163,7 +162,7 @@ static void process_frame(const uint8_t *buf, ssize_t len) {
 
     const struct iphdr *iph = (const struct iphdr *)(buf + sizeof(struct ethhdr));
     int ip_hlen = iph->ihl * 4;
-    if (ip_hlen < 20) return;
+    if (ip_hlen < 20 || ip_hlen > len - (ssize_t)sizeof(struct ethhdr)) return;
 
     uint32_t src_ip = iph->saddr;
     uint32_t dst_ip = iph->daddr;
@@ -296,7 +295,6 @@ static void print_topology(int show_all) {
 }
 
 static void print_usage(const char *prog) {
-    ps_print_banner(NG_TOOL_NAME, NG_DESC);
     printf(PS_BOLD "%s:" PS_RESET " %s [options]\n\n", I18N_USAGE, prog);
     printf(PS_BOLD "%s:\n" PS_RESET, I18N_OPTIONS);
     printf("  -i <iface>    Network interface (default: eth0)\n");
@@ -359,7 +357,11 @@ int main(int argc, char *argv[]) {
     sll.sll_family   = AF_PACKET;
     sll.sll_ifindex  = ifr.ifr_ifindex;
     sll.sll_protocol = htons(ETH_P_ALL);
-    bind(sock, (struct sockaddr *)&sll, sizeof(sll));
+    if (bind(sock, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
+        PS_ERR("bind() failed — are you running as root?");
+        close(sock);
+        return 1;
+    }
 
     PS_OK("%s on %s...", NG_SNIFFING, iface);
     if (capture_sec > 0)

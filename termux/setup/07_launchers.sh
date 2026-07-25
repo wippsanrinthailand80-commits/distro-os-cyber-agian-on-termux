@@ -46,7 +46,7 @@ TOOL_LAUNCHER
 done
 
 # ── Add ~/.local/bin to PATH ───────────────────────────────────────────────────
-for RC in "$HOME/.bashrc" "$HOME/.zshrc" "$PREFIX/etc/bash.bashrc"; do
+for RC in "$HOME/.bashrc" "$HOME/.zshrc" "${PREFIX:-}/etc/bash.bashrc"; do
   [ -f "$RC" ] || continue
   grep -q '\.local/bin' "$RC" && continue
   echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$RC"

@@ -1,6 +1,6 @@
 /*
  * EntropyWarden — Real-time Ransomware Detector
- * PhantomSec OS v2.0 | Written in C
+ * PhantomSec OS v2.5.3 | Written in C
  *
  * UNIQUE TOOL: No existing open-source tool combines inotify + Shannon entropy
  * analysis + sliding-window statistical detection for ransomware.
@@ -19,7 +19,6 @@
  * Run:   sudo ./entropyd -w /home -w /var -t 6.8 -n 5 -W 10
  */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -238,7 +237,6 @@ static void process_write_event(const char *dirpath, const char *filename) {
 }
 
 static void print_usage(const char *prog) {
-    ps_print_banner(EW_TOOL_NAME, EW_DESC);
     printf(PS_BOLD "%s:" PS_RESET " %s [options]\n\n", I18N_USAGE, prog);
     printf(PS_BOLD "%s:\n" PS_RESET, I18N_OPTIONS);
     printf("  -w <dir>    Watch directory (repeatable, max %d)\n", MAX_WATCH_DIRS);

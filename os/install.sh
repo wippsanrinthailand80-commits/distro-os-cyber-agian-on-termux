@@ -19,7 +19,7 @@ PREFIX="${PREFIX:-/usr/local/bin}"
 PS_LANG="${PHANTOMSEC_LANG:-en}"
 
 echo ""
-echo -e "${C}${BOLD}  PhantomSec OS v2.0.1${NC}"
+echo -e "${C}${BOLD}  PhantomSec OS v2.5.3${NC}"
 echo -e "${C}  Real Distro — C/C++ Build Installer${NC}\n"
 
 # ── Detect OS ────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ fi
 OS="$(uname -s)"
 [ "$OS" != "Linux" ] && err "PhantomSec OS requires Linux (x86-64 bare metal or VM)."
 ARCH="$(uname -m)"
-[ "$ARCH" != "x86_64" ] && err "Only x86-64 is supported. Detected: $ARCH"
+[ "$ARCH" != "x86_64" ] && [ "$ARCH" != "aarch64" ] && err "Only x86-64 and aarch64 are supported. Detected: $ARCH"
 
 # ── Check dependencies ───────────────────────────────────────────────────────
 log "Checking build dependencies..."
@@ -67,9 +67,9 @@ make LANG="$PS_LANG" all 2>&1 | sed 's/^/  /' || err "Build failed. Check output
 ok "Build complete."
 
 # ── Install binaries ─────────────────────────────────────────────────────────
-log "Installing to $PREFIX/bin ..."
-sudo make PREFIX="$PREFIX" install 2>&1 | sed 's/^/  /'
-ok "Tools installed to $PREFIX/bin"
+log "Installing to $PREFIX ..."
+sudo make PREFIX="$PREFIX" install 2>&1 | sed 's/^/  /' || err "Install failed. Check output above."
+ok "Tools installed to $PREFIX"
 
 # ── Build ISO (optional) ─────────────────────────────────────────────────────
 if command -v grub-mkrescue &>/dev/null && command -v xorriso &>/dev/null; then
@@ -82,7 +82,7 @@ fi
 
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${C}${BOLD}  PhantomSec OS v2.0.1 installed.${NC}"
+echo -e "${C}${BOLD}  PhantomSec OS v2.5.3 installed.${NC}"
 echo -e "  Tools: psh  netghost  spectrscan  scdna  entropyd"
 echo -e "  Run:   psh --help"
 echo ""

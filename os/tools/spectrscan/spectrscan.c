@@ -1,6 +1,6 @@
 /*
  * SpecterScan — Passive Firewall ACL Reconstructor
- * PhantomSec OS v2.0 | Written in C
+ * PhantomSec OS v2.5.3 | Written in C
  *
  * UNIQUE TOOL: No existing public tool reconstructs firewall rulesets
  * by analyzing TCP timing patterns and TTL decrements without triggering IDS.
@@ -21,7 +21,6 @@
  * Run:   sudo ./spectrscan -t 192.168.1.1 -p 1-1024
  */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +44,7 @@
 #define PROBE_TIMEOUT  500000   /* 500ms in microseconds */
 #define TIMING_SAMPLES 3        /* probes per port for timing accuracy */
 #define SHAPED_THRESH  150000   /* 150ms consistent delay = policer */
-#define VERSION        "2.5.2"
+#define VERSION        "2.5.3"
 
 /* Firewall behavior classification */
 typedef enum {
@@ -188,12 +187,13 @@ static int64_t wait_response(uint32_t dst_ip, uint16_t dport,
     }
 
     ssize_t len = recv(raw_sock_recv, buf, sizeof(buf), 0);
-    if (len < 0) return -1;
+    if (len < (ssize_t)sizeof(struct iphdr)) return -1;
 
     uint64_t t_end = now_ns();
 
     struct iphdr *iph = (struct iphdr *)buf;
     int ip_hlen = iph->ihl * 4;
+    if (ip_hlen < 20 || ip_hlen > len) return -1;
 
     /* ICMP unreachable → REJECT */
     if (iph->protocol == IPPROTO_ICMP && (size_t)len >= (size_t)(ip_hlen + 8)) {
@@ -206,7 +206,7 @@ static int64_t wait_response(uint32_t dst_ip, uint16_t dport,
     }
 
     /* TCP SYN-ACK → OPEN */
-    if (iph->protocol == IPPROTO_TCP && iph->saddr == dst_ip &&
+    if (iph->protocol == IPPROTO_TCP && (uint32_t)iph->saddr == dst_ip &&
         (size_t)len >= (size_t)(ip_hlen + sizeof(struct tcphdr))) {
         struct tcphdr *tcph = (struct tcphdr *)(buf + ip_hlen);
         if (ntohs(tcph->dest) == sport && ntohs(tcph->source) == dport) {
@@ -252,7 +252,6 @@ static const char *rule_name(fw_rule_t r) {
 }
 
 static void print_usage(const char *prog) {
-    ps_print_banner(SS_TOOL_NAME, SS_DESC);
     printf(PS_BOLD "%s:" PS_RESET " %s [options]\n\n", I18N_USAGE, prog);
     printf(PS_BOLD "%s:\n" PS_RESET, I18N_OPTIONS);
     printf("  -t <ip>         %s\n", I18N_TARGET);
