@@ -51,26 +51,140 @@
 
 ## 📸 Preview
 
+### Main Menu
+
 ```
 ╔══════════════════════════════════════════════════════════════════╗
-║                         MAIN MENU                                ║
+║  ⚡ PhantomSec OS v1.4.2              [ Termux Cyber Distro ]  ║
 ╠══════════════════════════════════════════════════════════════════╣
-║                                                                   ║
-║  [01]  🔍 Information Gathering      Recon & OSINT               ║
-║  [02]  🔓 Vulnerability Scanning     Exploit finding             ║
-║  [03]  💉 Web Exploitation           SQLi, XSS, LFI              ║
-║  [04]  🔑 Password Attacks           Brute force & cracking      ║
-║  [05]  📡 Network Analysis           Sniffing & MITM             ║
-║  [06]  📱 Wireless Attacks           WiFi & Bluetooth            ║
-║  [07]  🐚 Reverse Shells             Payloads & listeners        ║
-║  [08]  🛡️  Forensics & Analysis       Evidence & memory           ║
-║  [09]  🔐 Cryptography Tools         Encode, decode, hash        ║
-║  [10]  📦 Tool Manager               Install & update            ║
-║  [11]  📊 Session Manager            Logs & reports              ║
-║  [12]  ⚙️  Settings                   Config & themes             ║
-║                                                                   ║
+║                                                                  ║
+║  [01]  🔍 Information Gathering       Recon & OSINT             ║
+║  [02]  🔓 Vulnerability Scanning      Exploit finding           ║
+║  [03]  💉 Web Exploitation            SQLi, XSS, LFI            ║
+║  [04]  🔑 Password Attacks            Brute force & cracking    ║
+║  [05]  📡 Network Analysis            Sniffing & MITM           ║
+║  [06]  📱 Wireless Attacks            WiFi & Bluetooth          ║
+║  [07]  🐚 Reverse Shells              Payloads & listeners      ║
+║  [08]  🛡️  Forensics & Analysis        Evidence & memory         ║
+║  [09]  🔐 Cryptography Tools          Encode, decode, hash      ║
+║  [10]  📦 Tool Manager                Install & update          ║
+║  [11]  📊 Session Manager             Logs & reports            ║
+║  [12]  ⚙️  Settings                    Config & themes           ║
+║  [13]  🎣 Social Engineering          Phishing & SE tools       ║
+║  [14]  🍯 Honeypot                    Trap & log attackers      ║
+║                                                                  ║
+║  [00]  Exit PhantomSec                                          ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+  ▶ Select option:
+```
+
+### Sub-menu Examples
+
+<details>
+<summary>🔍 Information Gathering (13 tools)</summary>
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  🔍 INFORMATION GATHERING                                       ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  [1]   Nmap Port Scanner           [INSTALLED]                  ║
+║  [2]   Whois Lookup                [INSTALLED]                  ║
+║  [3]   DNS Enumeration             (dig / nslookup)             ║
+║  [4]   Subdomain Finder            (curl + wordlist)            ║
+║  [5]   GeoIP Lookup                (ip-api.com)                 ║
+║  [6]   HTTP Header Inspector       (curl)                       ║
+║  [7]   Shodan Search               (API key required)           ║
+║  [8]   Banner Grabbing             (nc / curl)                  ║
+║  [9]   WhatWeb Fingerprint         [INSTALLED]                  ║
+║  [10]  theHarvester OSINT          [INSTALLED]                  ║
+║  [11]  Wayback Machine Lookup      (archive.org)                ║
+║  [12]  SSL Certificate Inspector   (openssl)                    ║
+║  [13]  Email OSINT                 (leaks & breach check)       ║
+║                                                                  ║
+║  [0]   Back                                                     ║
 ╚══════════════════════════════════════════════════════════════════╝
 ```
+</details>
+
+<details>
+<summary>💉 Web Exploitation (6 tools)</summary>
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  💉 WEB EXPLOITATION                                            ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  [1]  SQLMap — SQL Injection        [INSTALLED]                 ║
+║  [2]  XSS Payload Generator        (built-in)                   ║
+║  [3]  Directory Bruteforce         (curl)                       ║
+║  [4]  LFI Tester                   (built-in)                   ║
+║  [5]  CORS & Security Headers      (built-in)                   ║
+║  [6]  Gobuster Dir Scan            [INSTALLED]                  ║
+║                                                                  ║
+║  [0]  Back                                                      ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+</details>
+
+<details>
+<summary>🔑 Password Attacks (6 tools)</summary>
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  🔑 PASSWORD ATTACKS                                            ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  [1]  Hydra — Network Bruteforce   [INSTALLED]                  ║
+║  [2]  Hash Identifier              (built-in)                   ║
+║  [3]  Hash Cracker (online)        (hashes.com)                 ║
+║  [4]  Password Generator           (built-in)                   ║
+║  [5]  Wordlist Manager             (built-in)                   ║
+║  [6]  John the Ripper              [INSTALLED]                  ║
+║                                                                  ║
+║  [0]  Back                                                      ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+</details>
+
+<details>
+<summary>🔓 Vulnerability Scanning (7 tools)</summary>
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  🔓 VULNERABILITY SCANNING                                      ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  [1]  Nikto Web Scanner            [INSTALLED]                  ║
+║  [2]  OpenVAS (via REST)           (external)                   ║
+║  [3]  CVE Lookup                   (nvd.nist.gov)               ║
+║  [4]  SSL/TLS Checker              (ssllabs)                    ║
+║  [5]  Custom Nmap Vuln Script      (--script vuln)              ║
+║  [6]  Nuclei Scanner               [INSTALLED]                  ║
+║  [7]  OWASP Quick Check            (headers+dirs+methods)       ║
+║                                                                  ║
+║  [0]  Back                                                      ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+</details>
+
+<details>
+<summary>🐚 Reverse Shells (3 tools)</summary>
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  🐚 REVERSE SHELLS                                              ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  [1]  Generate Payloads            (bash/python/nc/php/perl)    ║
+║  [2]  Start Listener               (nc -lvnp)                   ║
+║  [3]  Web Shell Generator          (PHP/Python)                 ║
+║                                                                  ║
+║  [0]  Back                                                      ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+</details>
 
 ---
 
