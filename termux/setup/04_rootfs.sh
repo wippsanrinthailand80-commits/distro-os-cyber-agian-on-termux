@@ -8,7 +8,7 @@ source "${PHANTOMSEC_COMMON:-$(dirname "$0")/_common.sh}"
 step "Step 4 — Ubuntu ARM64 rootfs"
 
 # Ubuntu 22.04 LTS (Jammy) ARM64 minimal base image
-ROOTFS_TAR="/tmp/phantomsec-rootfs.tar.gz"
+ROOTFS_TAR="${TMPDIR:-/tmp}/phantomsec-rootfs.tar.gz"
 ROOTFS_URL="https://partner-images.canonical.com/core/jammy/current/ubuntu-jammy-core-cloudimg-arm64-root.tar.gz"
 
 if [ -d "$ROOTFS_DIR/bin" ] && [ -d "$ROOTFS_DIR/etc" ]; then
