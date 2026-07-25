@@ -1,213 +1,205 @@
-<div align="center">
+# PhantomSec OS v2.0
 
-```
-██████╗ ██╗  ██╗ █████╗ ███╗   ██╗████████╗ ██████╗ ███╗   ███╗███████╗███████╗ ██████╗
-██╔══██╗██║  ██║██╔══██╗████╗  ██║╚══██╔══╝██╔═══██╗████╗ ████║██╔════╝██╔════╝██╔════╝
-██████╔╝███████║███████║██╔██╗ ██║   ██║   ██║   ██║██╔████╔██║███████╗█████╗  ██║
-██╔═══╝ ██╔══██║██╔══██║██║╚██╗██║   ██║   ██║   ██║██║╚██╔╝██║╚════██║██╔══╝  ██║
-██║     ██║  ██║██║  ██║██║ ╚████║   ██║   ╚██████╔╝██║ ╚═╝ ██║███████║███████╗╚██████╗
-╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚══════╝╚══════╝ ╚═════╝
-```
+> *A custom Linux distribution engineered from scratch in C/C++ for elite offensive and defensive security work.*
 
-# **PhantomSec OS**
-### Termux Cybersecurity Distro
-
-[![Platform](https://img.shields.io/badge/Platform-Android%20%2F%20Termux-green?style=flat-square&logo=android)](https://termux.com)
-[![Shell](https://img.shields.io/badge/Shell-Bash-blue?style=flat-square&logo=gnu-bash)](https://www.gnu.org/software/bash/)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.4.2-purple?style=flat-square)]()
-[![Status](https://img.shields.io/badge/Status-Actively%20Maintained-brightgreen?style=flat-square&logo=github)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/commits/main)
-[![Last Updated](https://img.shields.io/badge/Last%20Updated-July%202026-blue?style=flat-square)]()
-[![Stars](https://img.shields.io/github/stars/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/stargazers)
-
-**PhantomSec OS** turns your Android device + Termux into a full-featured cybersecurity research environment — with an interactive, colour-coded menu UI covering everything from recon to exploitation.
-
-> ⚠️ **For educational and ethical use only.** Always get written permission before testing any system you don't own.
-
-</div>
+[![Language](https://img.shields.io/badge/language-C%2FC%2B%2B-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
+[![License](https://img.shields.io/badge/license-MIT-00d4ff?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.0.0--alpha-00d4ff?style=flat-square)](CHANGELOG.md)
+[![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2-00d4ff?style=flat-square)](i18n/)
 
 ---
 
-## ⚡ Quick Install
+PhantomSec OS is not a reskin of Kali Linux. It is not a pretty wrapper around existing tools. It is an **original Linux distribution built entirely in C/C++** — custom kernel configuration, custom init-style system, and five original security tools that nobody has published before.
 
-### One-Command (Recommended)
+**รุ่นใหม่ทั้งหมดเขียนด้วย C/C++ — ไม่ใช่ wrapper ของ Kali หรือ distro อื่น**
+
+---
+
+## Unique Tools
+
+| Tool | ภาษา | คำอธิบาย |
+|------|-------|-----------|
+| **SpecterScan** | C | Passive firewall ACL reconstructor via TCP timing analysis — reconstructs firewall rules without triggering IDS |
+| **EntropyWarden** | C | Real-time ransomware detector using inotify + Shannon entropy — catches encryption within milliseconds |
+| **SyscallDNA** | C | Markov-chain behavioral fingerprinter via ptrace — creates DNA signatures from syscall sequences |
+| **NetGhost** | C | Passive network topology mapper — reconstructs full network map without sending a single packet |
+| **PhantomShell (psh)** | C | Custom OS shell with bilingual (EN/TH) interface and integrated security tools |
+
+---
+
+## Project Structure
+
+```
+phantomsec-src/
+├── tools/
+│   ├── spectrscan/     # Firewall ACL reconstructor
+│   │   └── spectrscan.c
+│   ├── entropyd/       # Ransomware entropy detector
+│   │   └── entropyd.c
+│   ├── scdna/          # Syscall DNA fingerprinter
+│   │   └── scdna.c
+│   ├── netghost/       # Passive network mapper
+│   │   └── netghost.c
+│   └── psh/            # PhantomSec shell
+│       └── psh.c
+├── i18n/
+│   ├── i18n.h          # i18n dispatcher
+│   ├── en.h            # English strings
+│   └── th.h            # Thai strings (ภาษาไทย)
+├── distro/
+│   ├── build.sh        # Full distro build script (Linux from scratch)
+│   └── kernel.config   # Hardened kernel configuration
+├── Makefile            # Master build file
+└── README.md
+```
+
+---
+
+## Build Tools
 
 ```bash
-curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/bootstrap.sh | bash
+# Install dependencies (Debian/Ubuntu)
+sudo apt-get install gcc make libreadline-dev
+
+# Build all tools
+make all
+
+# Install to /usr/local/bin
+sudo make install
+
+# Build in Thai language mode
+make LANG=th all
+
+# Build individual tool
+make spectrscan
 ```
 
-> Requires Termux with internet access. The bootstrap script installs `git` if needed, clones the repo, and runs the full installer automatically.
+---
 
-### Manual Install
+## Build the Full Distro ISO
+
+> Requires ~10GB disk space, ~2 hours build time, Linux host
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
-cd distro-os-cyber-agian-on-termux
+cd distro/
+sudo chmod +x build.sh
+sudo ./build.sh
 
-# 2. Run the installer
-bash install.sh
-
-# 3. Launch PhantomSec
-phantomsec
+# Test with QEMU
+qemu-system-x86_64 -cdrom /tmp/phantomsec-2.0.0-x86_64.iso -m 512M
 ```
 
 ---
 
-## 🔔 Project Status
+## Tool Usage
 
-> **โปรเจกต์นี้ยังคงอัพเดตอยู่อย่างต่อเนื่อง** — ติดตาม commits ล่าสุดได้ที่ [commits/main](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/commits/main)
-
-| สิ่งที่ทำ | สถานะ |
-|---|---|
-| 🐞 แก้ syntax error ใน `run_ssl_inspect` (missing `fi`) | ✅ Done (v1.4.2) |
-| 🔁 แก้ `menu_shells` ไม่มี while loop — กดอะไรก็ออก | ✅ Done (v1.4.2) |
-| 🛡️ เพิ่ม tool guard ใน `run_hydra` / `run_sqlmap` | ✅ Done (v1.4.2) |
-| 🔍 `tool_status` ตรวจ `~/.local/bin` + `~/go/bin` ด้วย | ✅ Done (v1.4.2) |
-| 📦 Tool Manager ติดตั้งแบบ per-tool graceful skip | ✅ Done (v1.4.2) |
-| 🐞 แก้ bug batch ใน v1.4.1 (curl timeouts, pip→pip3, seq loop) | ✅ Done (v1.4.1) |
-| 🧩 เพิ่ม module ใหม่ (Social Engineering, PrivEsc) | 🔄 In Progress |
-| 🎨 เพิ่ม themes ใหม่ | 🔄 In Progress |
-| 📄 ปรับปรุง documentation | 🔄 In Progress |
-
-> 📌 อัพเดตล่าสุด: **July 25, 2026** — v1.4.2 released  
-> ดู [CHANGELOG.md](CHANGELOG.md) สำหรับรายละเอียดทุก version
-
----
-
-## ✨ Features
-
-| Module | Description |
-|---|---|
-| **[01] Information Gathering** | Nmap, Whois, DNS enum, GeoIP, Shodan, theHarvester, WhatWeb, subdomain scanner |
-| **[02] Vulnerability Scanning** | Nmap vuln scripts, Nikto, WPScan, SSL checker, Nuclei |
-| **[03] Web Exploitation** | SQLMap, XSS generator, LFI scanner, Directory bruteforce (Gobuster), CORS checker |
-| **[04] Password Attacks** | Hydra, Hash identifier, Online hash cracker, Password generator, Wordlist manager |
-| **[05] Network Analysis** | Packet capture, Port scanner, ARP scan, Traceroute, Ping sweep |
-| **[06] Wireless Attacks** | WiFi scanning, Handshake capture, Aircrack-ng integration |
-| **[07] Reverse Shells** | Payload generator (Bash/Python/NC/PowerShell), Netcat listener, Web shell templates |
-| **[08] Forensics & Analysis** | File analysis, String extraction, Steganography, Log analyzer, Memory dump |
-| **[09] Cryptography Tools** | Encode/decode (Base64/Hex/ROT13), Hash generator, Caesar cipher, OpenSSL wrapper |
-| **[10] Tool Manager** | Check tool status, install/update tools, one-click batch install |
-| **[11] Sessions & Reports** | Session logging, report viewer, auto-save scan results |
-| **[12] Settings** | Theme selector, API key config, display options |
-| **[13] Social Engineering** | Zphisher, Metasploit info, SET guide |
-| **[14] Privilege Escalation** | SUID finder, sudo checker, cron job auditor, writable dir scanner |
-
----
-
-## 📸 Preview
-
-### Main Menu
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  ⚡ PhantomSec OS v1.4.2              [ Termux Cyber Distro ]  ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  [01]  🔍 Information Gathering       Recon & OSINT             ║
-║  [02]  🔓 Vulnerability Scanning      Exploit finding           ║
-║  [03]  💉 Web Exploitation            SQLi, XSS, LFI            ║
-║  [04]  🔑 Password Attacks            Brute force & cracking    ║
-║  [05]  📡 Network Analysis            Sniffing & MITM           ║
-║  [06]  📱 Wireless Attacks            WiFi & Bluetooth          ║
-║  [07]  🐚 Reverse Shells              Payloads & listeners      ║
-║  [08]  🛡️  Forensics & Analysis        Evidence & memory         ║
-║  [09]  🔐 Cryptography Tools          Encode, decode, hash      ║
-║  [10]  📦 Tool Manager                Install & update tools    ║
-║  [11]  📋 Sessions & Reports          View saved results        ║
-║  [12]  ⚙️  Settings                    Theme & API keys          ║
-║  [13]  🎭 Social Engineering          Phishing & SET            ║
-║  [14]  🔺 Privilege Escalation        PrivEsc checks            ║
-║                                                                  ║
-║  [0]   Exit                                                      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-
----
-
-## 🔄 Update
+### SpecterScan — Firewall ACL Reconstructor
 
 ```bash
-# From inside the menu:
-# Option 10 (Tool Manager) → Update PhantomSec
+# Reconstruct firewall rules from timing patterns
+sudo spectrscan -t 192.168.1.1 -p 1-1024
 
-# Or run directly:
-bash update.sh
+# Save report
+sudo spectrscan -t 10.0.0.1 -p 1-65535 -o fw_report.csv
+
+# Thai output
+PHANTOMSEC_LANG=th sudo spectrscan -t 192.168.1.1 -p 80,443,22
 ```
 
----
-
-## ❌ Uninstall
+### EntropyWarden — Ransomware Detector
 
 ```bash
-bash uninstall.sh
+# Watch /home and /var for entropy spikes
+sudo entropyd -w /home -w /var
+
+# Custom threshold (7.0 bits/byte = definitely encrypted)
+sudo entropyd -w /home -t 7.0 -n 3 -W 5
+
+# Verbose (show all files)
+sudo entropyd -w /home -v
+```
+
+### SyscallDNA — Behavioral Fingerprinter
+
+```bash
+# Fingerprint a running process
+sudo scdna -p $(pgrep sshd)
+
+# Save baseline profile
+sudo scdna -p $(pgrep nginx) -s /etc/phantomsec/profiles/nginx.dna
+
+# Compare against baseline (anomaly detection)
+sudo scdna -p 1234 -c /etc/phantomsec/profiles/nginx.dna
+```
+
+### NetGhost — Passive Topology Mapper
+
+```bash
+# Map network for 60 seconds (NO packets sent)
+sudo netghost -i eth0 -t 60
+
+# Infinite capture, show all hosts
+sudo netghost -i wlan0 -t 0 -a
+
+# Save topology report
+sudo netghost -i eth0 -t 120 -o topology.csv
+```
+
+### PhantomShell (psh) — Custom Shell
+
+```bash
+# Start PhantomShell
+psh
+
+# Start in Thai mode
+PHANTOMSEC_LANG=th psh
+
+# Inside psh:
+help           # Show help (bilingual)
+tools          # List PhantomSec tools
+entropy /home  # Check directory entropy
+threat         # Live threat monitor
+lang th        # Switch to Thai
+lang en        # Switch to English
 ```
 
 ---
 
-## 📋 Changelog Highlights
+## i18n — Multilingual Support
 
-| Version | วันที่ | สิ่งที่เปลี่ยน |
-|---|---|---|
-| **v1.4.2** | Jul 25, 2026 | แก้ syntax error, menu_shells loop, tool guards, graceful install, pip3 fixes |
-| **v1.4.1** | Jul 24, 2026 | แก้ curl timeouts, seq loops, SSL date parse, PATH สำหรับ gobuster |
-| **v1.4.0** | Jul 2026 | เพิ่ม PrivEsc module, Social Engineering, bug fixes จาก v1.3.x |
-| **v1.3.1** | Jun 2026 | เพิ่ม honeypot, session manager, themes |
+All tools support English and Thai via `PHANTOMSEC_LANG` environment variable:
 
-> ดูรายละเอียดทั้งหมดที่ [CHANGELOG.md](CHANGELOG.md)
-
----
-
-## 📁 Repository Structure
-
+```bash
+export PHANTOMSEC_LANG=th   # Thai (ภาษาไทย)
+export PHANTOMSEC_LANG=en   # English (default)
 ```
-distro-os-cyber-agian-on-termux/
-├── phantomsec.sh       # Main interactive menu (1886 lines)
-├── install.sh          # Full installer
-├── update.sh           # Updater (git stash → pull → pop)
-├── uninstall.sh        # Clean uninstaller
-├── bootstrap.sh        # One-command bootstrap (curl | bash)
-├── VERSION             # Current version string
-├── config/
-│   └── settings.conf   # Default configuration
-├── modules/
-│   ├── osint.sh        # OSINT module
-│   ├── privesc.sh      # Privilege escalation checks
-│   ├── recon.sh        # Standalone recon script
-│   ├── webexploit.sh   # Web exploitation helpers
-│   └── nettools.sh     # Network tools
-├── themes/
-│   ├── matrix.sh       # Matrix green theme
-│   ├── dark.sh         # Dark theme
-│   └── classic.sh      # Classic theme
-└── docs/
-    ├── USAGE.md        # Usage guide & example workflows
-    └── TOOLS.md        # Tool reference & command examples
+
+Or compile with Thai as default:
+
+```bash
+make LANG=th all   # Compile with Thai strings baked in
 ```
 
 ---
 
-## 📜 Legal Disclaimer
+## v1 vs v2 Comparison
 
-PhantomSec OS ออกแบบมาสำหรับ:
-- ✅ Authorized penetration testing
-- ✅ Security research and education
-- ✅ CTF (Capture The Flag) competitions
-- ✅ Learning cybersecurity concepts on your own systems
-
-**คุณรับผิดชอบทั้งหมดในการใช้งานเครื่องมือนี้** การใช้งานโดยไม่ได้รับอนุญาตถือเป็นการกระทำที่ผิดกฎหมายในหลายประเทศ
-
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE)
+| Feature | v1 (Termux/Shell) | v2 (PhantomSec OS C/C++) |
+|---------|-------------------|--------------------------|
+| Language | Shell script | C / C++ |
+| Platform | Termux (Android) | Native Linux |
+| Tools | Wrappers around existing tools | Original, never-before-seen tools |
+| i18n | Partial Thai | Full EN/TH bilingual |
+| Distro | No | Full custom Linux from scratch |
+| Kernel | Android kernel | Custom hardened Linux 6.6 |
+| Init | Android init | Custom C init system |
 
 ---
 
-<div align="center">
-Made with ❤️ by <b>wippsanrinthailand80-commits</b> · Star ⭐ if you find it useful!
-<br><br>
-<sub>🔄 Actively maintained — latest: v1.4.2 · July 2026</sub>
-</div>
+## Security Notice
+
+These tools are for **authorized security testing and research only**. Use only on systems you own or have explicit written permission to test. The authors are not responsible for misuse.
+
+---
+
+*Built with ☠️ in Thailand | สร้างด้วยใจในประเทศไทย*
