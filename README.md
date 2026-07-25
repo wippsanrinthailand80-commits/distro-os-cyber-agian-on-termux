@@ -1,6 +1,6 @@
-# PhantomSec — Distro Feel Edition v2.0.1
+# PhantomSec v2.0.1
 
-> *The cybersecurity toolkit that makes your terminal feel like a distro — without needing one.*
+> *Cybersecurity toolkit — two editions, one repo.*
 
 [![Platform](https://img.shields.io/badge/platform-Termux%20%7C%20Linux%20%7C%20macOS-00d4ff?style=flat-square)](https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux)
 [![Language](https://img.shields.io/badge/language-Bash-00d4ff?style=flat-square)](phantomsec.sh)
@@ -9,26 +9,26 @@
 
 ---
 
-> This is the **Distro Feel Edition** — a shell-based toolkit that runs anywhere Bash runs. Not a real Linux distro.
+## Two Editions
 
----
-
-## What is this?
-
-**Distro Feel Edition** is a shell-based cybersecurity toolkit that gives you the *feel* of a dedicated security distro — on any device, with just Bash. Works on:
-
-- 📱 **Termux** (Android) — the original home
-- 🐧 **Linux** (Debian, Ubuntu, Arch, Kali, Parrot)
-- 🍎 **macOS** (with Homebrew tools)
-
-No kernel recompile. No virtual machine. Just `bash phantomsec.sh`.
+| | Main Edition | Distro Feel Edition |
+|---|---|---|
+| **Folder** | `/` (root) | `distro-feel/` |
+| **What it is** | Full-featured cybersecurity toolkit | Same features, lighter feel — no real distro |
+| **One-line install** | `bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)` | `bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/distro-feel/install.sh)` |
 
 ---
 
 ## ⚡ One-Line Install
 
+### Main Edition
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
+```
+
+### Distro Feel Edition
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/distro-feel/install.sh)
 ```
 
 ---
@@ -50,43 +50,33 @@ bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/d
 ## Quick Start
 
 ```bash
-# One-line install (recommended)
-bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
-
-# Or manually
+# Clone repo
 git clone https://github.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux
 cd distro-os-cyber-agian-on-termux
-bash install.sh
-phantomsec
+
+# Main Edition
+bash install.sh && phantomsec
+
+# Distro Feel Edition
+cd distro-feel && bash install.sh && phantomsec
 ```
 
 ### Termux (Android)
-
 ```bash
 pkg update && pkg install git curl nmap python
+
+# Main Edition
 bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/install.sh)
+
+# Distro Feel Edition
+bash <(curl -sL https://raw.githubusercontent.com/wippsanrinthailand80-commits/distro-os-cyber-agian-on-termux/main/distro-feel/install.sh)
 ```
 
 ---
 
 ## Update
-
 ```bash
-phantomsec --update
-# or
 cd ~/.phantomsec && git pull && bash install.sh
-```
-
----
-
-## Language / ภาษา
-
-Switch between English and Thai inside the app via **Settings → Language**.
-
-Or set before launch:
-```bash
-PHANTOMSEC_LANG=th bash phantomsec.sh   # Thai
-PHANTOMSEC_LANG=en bash phantomsec.sh   # English (default)
 ```
 
 ---
@@ -99,6 +89,15 @@ PHANTOMSEC_LANG=en bash phantomsec.sh   # English (default)
 | `matrix` | Green / black |
 | `blood` | Red / dark |
 | `stealth` | Minimal gray |
+
+---
+
+## Language / ภาษา
+
+```bash
+PHANTOMSEC_LANG=th bash phantomsec.sh   # Thai
+PHANTOMSEC_LANG=en bash phantomsec.sh   # English (default)
+```
 
 ---
 
