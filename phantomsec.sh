@@ -1308,13 +1308,14 @@ run_ssl_inspect() {
     if [ "${exp_epoch:-0}" -eq 0 ]; then
       echo -e "  ${Y}[!] ไม่สามารถแปลงวันหมดอายุได้${NC}"
     else
-    days_left=$(( (exp_epoch - now_epoch) / 86400 ))
-    if [ "$days_left" -lt 30 ]; then
-      echo -e "  ${R}[!] EXPIRES IN $days_left DAYS — ต้องต่ออายุเร็วๆ นี้!${NC}"
-    elif [ "$days_left" -lt 90 ]; then
-      echo -e "  ${Y}[!] Expires in $days_left days${NC}"
-    else
-      echo -e "  ${G}[✓] Valid for $days_left more days${NC}"
+      days_left=$(( (exp_epoch - now_epoch) / 86400 ))
+      if [ "$days_left" -lt 30 ]; then
+        echo -e "  ${R}[!] EXPIRES IN $days_left DAYS — ต้องต่ออายุเร็วๆ นี้!${NC}"
+      elif [ "$days_left" -lt 90 ]; then
+        echo -e "  ${Y}[!] Expires in $days_left days${NC}"
+      else
+        echo -e "  ${G}[✓] Valid for $days_left more days${NC}"
+      fi
     fi
   fi
   draw_line "─" 66; press_enter
